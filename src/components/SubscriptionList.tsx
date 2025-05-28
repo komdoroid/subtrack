@@ -2,13 +2,16 @@
  * SubscriptionList.tsx
  * ----------------------------------------
  * 作成日: 2025-05-26
- * 概要  : サブスクリプション一覧表示（現時点ではダミーデータ使用）
- * 補足  : 将来的に Firebase から取得するよう拡張予定
+ * 更新日: 2025-05-26
+ * 概要  : Firestore から現在のユーザーのサブスクリプション一覧をリアルタイム取得・表示
  */
 
 'use client'
 
 import { useEffect, useState } from 'react'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { db } from '@/firebase'
+import { useAuth } from '@/lib/useAuth'
 
 type Subscription = {
   id: string
@@ -18,43 +21,40 @@ type Subscription = {
 }
 
 export const SubscriptionList = () => {
+  const { user } = useAuth()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
 
   useEffect(() => {
-    // ダミーデータ（今後 Firebase から取得に置き換え）
-    const dummy: Subscription[] = [
-      {
-        id: '1',
-        name: 'Netflix',
-        price: 990,
-        billingDate: '2025-06-01',
-      },
-      {
-        id: '2',
-        name: 'Spotify',
-        price: 480,
-        billingDate: '2025-06-05',
-      },
-    ]
-    setSubscriptions(dummy)
-  }, [])
+    if (!user) return
+
+    const q = query(
+      collection(db, 'subscriptions'),
+      where('uid', '==', user.uid)
+    )
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Subscription[]
+      setSubscriptions(data)
+    })
+
+    return () => unsubscribe()
+  }, [user])
+
+  if (!user) return null
+  if (!subscriptions.length) return <p>登録されたサブスクリプションはありません。</p>
 
   return (
-    <div className="w-full max-w-2xl mt-6">
-      <h2 className="text-xl font-semibold mb-4">サブスクリプション一覧</h2>
-      <ul className="space-y-3">
+    <div className="mt-6 w-full max-w-2xl">
+      <h2 className="text-xl font-semibold mb-4">登録済みのサブスクリプション</h2>
+      <ul className="space-y-4">
         {subscriptions.map((sub) => (
-          <li
-            key={sub.id}
-            className="border rounded p-4 bg-white shadow-sm flex justify-between"
-          >
-            <div>
-              <p className="font-bold">{sub.name}</p>
-              <p className="text-sm text-gray-500">請求日: {sub.billingDate}</p>
-            </div>
-            <div className="text-right font-medium text-gray-700">
-              ¥{sub.price.toLocaleString()}
-            </div>
+          <li key={sub.id} className="bg-white shadow p-4 rounded">
+            <div className="font-bold text-lg">{sub.name}</div>
+            <div className="text-sm text-gray-700">月額料金: ¥{sub.price}</div>
+            <div className="text-sm text-gray-700">次回請求日: {sub.billingDate}</div>
           </li>
         ))}
       </ul>

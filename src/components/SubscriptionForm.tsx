@@ -2,31 +2,53 @@
  * SubscriptionForm.tsx
  * ----------------------------------------
  * 作成日: 2025-05-26
- * 概要  : サブスクリプション新規登録フォーム（現時点ではstateのみ保存）
- * 補足  : 次ステップで Firestore に保存処理を追加予定
+ * 概要  : サブスクリプション新規登録フォーム（Firestore保存対応）
+ * 補足  : 保存後、一覧更新は未対応（次ステップ）
  */
 
 'use client'
 
 import { useState } from 'react'
+import { collection, addDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
+import { useAuth } from '@/lib/useAuth'
 
 export const SubscriptionForm = () => {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [billingDate, setBillingDate] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log({
-      name,
-      price: Number(price),
-      billingDate,
-    })
 
-    // フォーム初期化
-    setName('')
-    setPrice('')
-    setBillingDate('')
+    if (!user) {
+      alert('ログインしてください')
+      return
+    }
+
+    try {
+      setLoading(true)
+      await addDoc(collection(db, 'subscriptions'), {
+        uid: user.uid,
+        name,
+        price: Number(price),
+        billingDate,
+        createdAt: new Date().toISOString(),
+      })
+
+      // フォーム初期化
+      setName('')
+      setPrice('')
+      setBillingDate('')
+      alert('登録しました！')
+    } catch (error) {
+      console.error('保存に失敗しました:', error)
+      alert('保存に失敗しました')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -68,9 +90,10 @@ export const SubscriptionForm = () => {
 
       <button
         type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        disabled={loading}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
       >
-        登録する
+        {loading ? '登録中...' : '登録する'}
       </button>
     </form>
   )
