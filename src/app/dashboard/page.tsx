@@ -10,6 +10,8 @@
 
 import { useAuth } from '@/lib/useAuth'
 import { Navbar } from '@/components/Navbar'
+import { SubscriptionList } from '@/components/SubscriptionList'
+import { SubscriptionForm } from '@/components/SubscriptionForm'
 
 export default function DashboardPage() {
   const { user, loading } = useAuth(true)
@@ -21,9 +23,10 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <main className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
         <h1 className="text-3xl font-bold mb-4">ようこそ、{user?.email} さん！</h1>
-        <p className="text-gray-600">これはログイン済みユーザー向けのダッシュボードです。</p>
+        <SubscriptionList />
+        <SubscriptionForm />
       </main>
     </>
   )
