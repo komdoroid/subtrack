@@ -3,12 +3,13 @@
  * ----------------------------------------
  * 作成日: 2025-05-26
  * 更新日: 2025-05-26
- * 概要  : Firestore から現在のユーザーのサブスクリプション一覧をリアルタイム取得・表示
+ * 概要  : Firestore から現在のユーザーのサブスクリプション一覧をリアルタイム取得・表示 +
+ *         月額料金の合計を表示
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
@@ -43,12 +44,21 @@ export const SubscriptionList = () => {
     return () => unsubscribe()
   }, [user])
 
+  const totalPrice = useMemo(() => {
+    return subscriptions.reduce((sum, sub) => sum + (sub.price || 0), 0)
+  }, [subscriptions])
+
   if (!user) return null
   if (!subscriptions.length) return <p>登録されたサブスクリプションはありません。</p>
 
   return (
     <div className="mt-6 w-full max-w-2xl">
       <h2 className="text-xl font-semibold mb-4">登録済みのサブスクリプション</h2>
+
+      <div className="mb-4 text-lg font-bold text-blue-700">
+        合計: ¥{totalPrice.toLocaleString()} / 月
+      </div>
+
       <ul className="space-y-4">
         {subscriptions.map((sub) => (
           <li key={sub.id} className="bg-white shadow p-4 rounded">
