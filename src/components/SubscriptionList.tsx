@@ -13,6 +13,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
+import { SubscriptionItem } from './SubscriptionItem'
 
 type Subscription = {
   id: string
@@ -61,11 +62,13 @@ export const SubscriptionList = () => {
 
       <ul className="space-y-4">
         {subscriptions.map((sub) => (
-          <li key={sub.id} className="bg-white shadow p-4 rounded">
-            <div className="font-bold text-lg">{sub.name}</div>
-            <div className="text-sm text-gray-700">月額料金: ¥{sub.price}</div>
-            <div className="text-sm text-gray-700">次回請求日: {sub.billingDate}</div>
-          </li>
+          <SubscriptionItem 
+            key={sub.id} 
+            id={sub.id}
+            name={sub.name}
+            price={sub.price}
+            billingDate={sub.billingDate}
+          />
         ))}
       </ul>
     </div>
