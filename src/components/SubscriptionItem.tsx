@@ -2,13 +2,13 @@
  * SubscriptionItem.tsx
  * ----------------------------------------
  * 作成日: 2025-05-26
- * 概要  : サブスクリプション1件分の表示・編集コンポーネント
+ * 概要  : サブスクリプション1件分の表示・編集・削除コンポーネント
  */
 
 'use client'
 
 import { useState } from 'react'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
 
 type Props = {
@@ -35,6 +35,15 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
       setIsEditing(false)
     } catch (error) {
       console.error('更新に失敗しました:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('このサブスクリプションを削除しますか？')) return
+    try {
+      await deleteDoc(doc(db, 'subscriptions', id))
+    } catch (error) {
+      console.error('削除に失敗しました:', error)
     }
   }
 
@@ -66,6 +75,9 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
             <button onClick={() => setIsEditing(false)} className="px-3 py-1 bg-gray-300 rounded">
               キャンセル
             </button>
+            <button onClick={handleDelete} className="px-3 py-1 bg-red-500 text-white rounded">
+              削除
+            </button>
           </div>
         </div>
       ) : (
@@ -75,6 +87,9 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
           <div className="text-sm text-gray-700">次回請求日: {billingDate}</div>
           <button onClick={() => setIsEditing(true)} className="mt-2 text-blue-600 text-sm underline">
             編集
+          </button>
+          <button onClick={handleDelete} className='text-red-600 text-sm underline'>
+            削除
           </button>
         </div>
       )}
