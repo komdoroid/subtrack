@@ -15,39 +15,44 @@ import { useAuth } from '@/lib/useAuth'
 
 export const SubscriptionForm = () => {
   const [name, setName] = useState('')
-  const [price, setPrice] = useState('')
+  const [price, setPrice] = useState<number>(0)
   const [billingDate, setBillingDate] = useState('')
+  const [errors, setErrors] = useState<{ name?: string; price?: string; billingDate?: string }>({})
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
 
+  const validate = () => {
+    const newErrors: typeof errors = {}
+    if (!name.trim()) newErrors.name = '名前を入力してください'
+    if (isNaN(price) || price < 0) newErrors.price = '月額料金は0以上の数値で入力してください'
+    if (!billingDate) newErrors.billingDate = '請求日を選択してください'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!user) {
       alert('ログインしてください')
       return
     }
+    if (!validate()) return
 
     try {
-      setLoading(true)
       await addDoc(collection(db, 'subscriptions'), {
-        uid: user.uid,
+        userId: user.uid,
         name,
-        price: Number(price),
-        billingDate,
-        createdAt: new Date().toISOString(),
+        price,
+        billingDate
       })
 
-      // フォーム初期化
+      // 入力リセット
       setName('')
-      setPrice('')
+      setPrice(0)
       setBillingDate('')
-      alert('登録しました！')
+      setErrors({})
     } catch (error) {
-      console.error('保存に失敗しました:', error)
-      alert('保存に失敗しました')
-    } finally {
-      setLoading(false)
+      console.error('登録に失敗しました:', error)
     }
   }
 
@@ -60,9 +65,8 @@ export const SubscriptionForm = () => {
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
           className="w-full border border-gray-300 rounded p-2"
+          onChange={(e) => setName(e.target.value)}
         />
       </div>
 
@@ -71,7 +75,7 @@ export const SubscriptionForm = () => {
         <input
           type="number"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => setPrice(Number(e.target.value))}
           required
           className="w-full border border-gray-300 rounded p-2"
         />
