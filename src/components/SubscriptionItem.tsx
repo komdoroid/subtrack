@@ -61,7 +61,7 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
 
   return (
     <>
-      <li className="bg-white shadow p-4 rounded">
+      <li className="bg-white shadow p-4 rounded text-gray-800">
         <div className="font-bold text-lg">{name}</div>
         <div className="text-sm text-gray-700">月額料金: ¥{price}</div>
         <div className="text-sm text-gray-700">次回請求日: {billingDate}</div>
@@ -79,24 +79,24 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg shadow p-6 w-full max-w-md">
-            <Dialog.Title className="text-lg font-bold mb-4">編集: {name}</Dialog.Title>
+            <Dialog.Title className="text-lg font-bold mb-4 text-gray-800">編集: {name}</Dialog.Title>
             <div className="space-y-4">
               <input
-                className="border p-2 w-full"
+                className="border p-2 w-full text-gray-800"
                 value={editedName}
                 onChange={(e) => setEditedName(e.target.value)}
               />
               {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
               <input
                 type="number"
-                className="border p-2 w-full"
+                className="border p-2 w-full text-gray-800"
                 value={editedPrice}
                 onChange={(e) => setEditedPrice(Number(e.target.value))}
               />
               {errors.price && <p className="text-red-600 text-sm">{errors.price}</p>}
               <input
                 type="date"
-                className="border p-2 w-full"
+                className="border p-2 w-full text-gray-800"
                 value={editedDate}
                 onChange={(e) => setEditedDate(e.target.value)}
               />

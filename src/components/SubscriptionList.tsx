@@ -54,7 +54,7 @@ export const SubscriptionList = () => {
 
   return (
     <div className="mt-6 w-full max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4">登録済みのサブスクリプション</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">登録済みのサブスクリプション</h2>
 
       <div className="mb-4 text-lg font-bold text-blue-700">
         合計: ¥{totalPrice.toLocaleString()} / 月

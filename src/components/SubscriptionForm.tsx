@@ -58,10 +58,10 @@ export const SubscriptionForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow p-6 rounded w-full max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4">新しいサブスクリプションを追加</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">新しいサブスクリプションを追加</h2>
 
       <div className="mb-4">
-        <label className="block mb-1 font-medium">サービス名</label>
+        <label className="block mb-1 font-medium text-gray-800">サービス名</label>
         <input
           type="text"
           value={name}
@@ -71,7 +71,7 @@ export const SubscriptionForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1 font-medium">月額料金（円）</label>
+        <label className="block mb-1 font-medium text-gray-800">月額料金（円）</label>
         <input
           type="number"
           value={price}
@@ -82,7 +82,7 @@ export const SubscriptionForm = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1 font-medium">次回請求日</label>
+        <label className="block mb-1 font-medium text-gray-800">次回請求日</label>
         <input
           type="date"
           value={billingDate}

@@ -24,7 +24,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
-        <h1 className="text-3xl font-bold mb-4">ようこそ、{user?.email} さん！</h1>
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">ようこそ、{user?.email} さん！</h1>
         <SubscriptionList />
         <SubscriptionForm />
       </main>
