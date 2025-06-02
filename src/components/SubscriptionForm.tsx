@@ -13,24 +13,31 @@ import { collection, addDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
 
+type FormErrors = {
+  name?: string
+  price?: string
+  billingDate?: string
+}
+
 export const SubscriptionForm = () => {
   const [name, setName] = useState('')
   const [price, setPrice] = useState<number>(0)
   const [billingDate, setBillingDate] = useState('')
-  const [errors, setErrors] = useState<{ name?: string; price?: string; billingDate?: string }>({})
+  const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
 
-  const validate = () => {
-    const newErrors: typeof errors = {}
-    if (!name.trim()) newErrors.name = '名前を入力してください'
-    if (isNaN(price) || price < 0) newErrors.price = '月額料金は0以上の数値で入力してください'
-    if (!billingDate) newErrors.billingDate = '請求日を選択してください'
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  /** 入力チェック ― 問題がなければ true */
+  const validate = (): boolean => {
+    const next: FormErrors = {}
+    if (!name.trim()) next.name = '名前を入力してください'
+    if (isNaN(price) || price < 0) next.price = '月額料金は 0 以上の数値で入力してください'
+    if (!billingDate) next.billingDate = '請求日を選択してください'
+    setErrors(next)
+    return Object.keys(next).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!user) {
       alert('ログインしてください')
@@ -38,6 +45,7 @@ export const SubscriptionForm = () => {
     }
     if (!validate()) return
 
+    setLoading(true)
     try {
       await addDoc(collection(db, 'subscriptions'), {
         userId: user.uid,
@@ -51,45 +59,62 @@ export const SubscriptionForm = () => {
       setPrice(0)
       setBillingDate('')
       setErrors({})
-    } catch (error) {
-      console.error('登録に失敗しました:', error)
+    } catch (err) {
+      console.error('登録に失敗しました:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow p-6 rounded w-full max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">新しいサブスクリプションを追加</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">
+        新しいサブスクリプションを追加
+      </h2>
 
+      {/* サービス名 */}
       <div className="mb-4">
         <label className="block mb-1 font-medium text-gray-800">サービス名</label>
         <input
           type="text"
           value={name}
-          className="w-full border border-gray-300 rounded p-2"
           onChange={(e) => setName(e.target.value)}
+          className={`w-full border rounded p-2 ${
+            errors.name ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
+        {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
       </div>
 
+      {/* 月額料金 */}
       <div className="mb-4">
         <label className="block mb-1 font-medium text-gray-800">月額料金（円）</label>
         <input
           type="number"
+          min={0}
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
-          required
-          className="w-full border border-gray-300 rounded p-2"
+          className={`w-full border rounded p-2 ${
+            errors.price ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
+        {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
       </div>
 
+      {/* 次回請求日 */}
       <div className="mb-4">
         <label className="block mb-1 font-medium text-gray-800">次回請求日</label>
         <input
           type="date"
           value={billingDate}
           onChange={(e) => setBillingDate(e.target.value)}
-          required
-          className="w-full border border-gray-300 rounded p-2"
+          className={`w-full border rounded p-2 ${
+            errors.billingDate ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
+        {errors.billingDate && (
+          <p className="text-sm text-red-600 mt-1">{errors.billingDate}</p>
+        )}
       </div>
 
       <button
