@@ -34,7 +34,7 @@ export default function AuthPage() {
 
         <input
           type="email"
-          placeholder="メールアドレス"
+          placeholder="ユーザー名"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required

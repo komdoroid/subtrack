@@ -31,7 +31,7 @@ export const SubscriptionList = () => {
 
     const q = query(
       collection(db, 'subscriptions'),
-      where('uid', '==', user.uid)
+      where('userId', '==', user.uid)
     )
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
