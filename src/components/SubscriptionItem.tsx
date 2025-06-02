@@ -11,7 +11,6 @@ import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
-import { stringify } from 'querystring'
 
 type Props = {
   id: string
