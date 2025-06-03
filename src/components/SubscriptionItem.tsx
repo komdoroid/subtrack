@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
+import { PrimaryButton } from './ui/PrimaryButton'
 
 type Props = {
   id: string
@@ -65,19 +66,19 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
         <div className="text-sm text-gray-700">月額料金: ¥{price}</div>
         <div className="text-sm text-gray-700">次回請求日: {billingDate}</div>
         <div className="mt-2 flex gap-2">
-          <button onClick={() => setIsOpen(true)} className="text-blue-600 text-sm underline">
+          <PrimaryButton onClick={() => setIsOpen(true)} className="text-sm bg-blue-600">
             編集
-          </button>
-          <button onClick={handleDelete} className="text-red-600 text-sm underline">
+          </PrimaryButton>
+          <PrimaryButton onClick={handleDelete} className="text-sm bg-gray-600">
             削除
-          </button>
+          </PrimaryButton>
         </div>
       </li>
 
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-lg shadow p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg shadow p-6 w-full max-w-md">
             <Dialog.Title className="text-lg font-bold mb-4 text-gray-800">編集: {name}</Dialog.Title>
             <div className="space-y-4">
               <input
@@ -101,21 +102,21 @@ export const SubscriptionItem = ({ id, name, price, billingDate }: Props) => {
               />
               {errors.billingDate && <p className="text-red-600 text-sm">{errors.billingDate}</p>}
               <div className="flex gap-2 justify-end">
-                <button
+                <PrimaryButton
                   onClick={() => setIsOpen(false)}
-                  className="px-3 py-1 bg-gray-300 rounded"
+                  className="px-3 py-1 bg-gray-600 rounded"
                 >
                   キャンセル
-                </button>
-                <button
+                </PrimaryButton>
+                <PrimaryButton
                   onClick={handleUpdate}
                   className="px-3 py-1 bg-blue-600 text-white rounded"
                 >
                   保存
-                </button>
+                </PrimaryButton>
               </div>
             </div>
-          </Dialog.Panel>
+          </div>
         </div>
       </Dialog>
     </>

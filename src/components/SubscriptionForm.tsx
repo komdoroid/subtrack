@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
+import { PrimaryButton } from './ui/PrimaryButton'
 
 type FormErrors = {
   name?: string
@@ -117,13 +118,13 @@ export const SubscriptionForm = () => {
         )}
       </div>
 
-      <button
+      <PrimaryButton
         type="submit"
         disabled={loading}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? '登録中...' : '登録する'}
-      </button>
+      </PrimaryButton>
     </form>
   )
 }
