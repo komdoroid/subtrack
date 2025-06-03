@@ -9,6 +9,7 @@
 'use client'
 
 import { useAuth } from '@/lib/useAuth'
+import { AppShell } from '@/components/layout/AppShell'
 import { Navbar } from '@/components/Navbar'
 import { SubscriptionList } from '@/components/SubscriptionList'
 import { SubscriptionForm } from '@/components/SubscriptionForm'
@@ -22,14 +23,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      <Navbar />
+    <AppShell>
       <main className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
         <h1 className="text-3xl font-bold mb-4 text-gray-800">ようこそ、{user?.email} さん！</h1>
         <SubscriptionChart />
         <SubscriptionList />
         <SubscriptionForm />
       </main>
-    </>
+    </AppShell>
   )
 }
