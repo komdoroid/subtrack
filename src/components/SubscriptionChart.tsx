@@ -9,13 +9,13 @@
 
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
 
-type Subscription = {
-  price: number
-  billingDate: string // 'YYYY-MM-DD'
+type PaymentHistory = {
+  amount: number
+  paymentDate: string // 'YYYY-MM-DD'
 }
 
 type MonthlyData = {
@@ -42,21 +42,30 @@ export const SubscriptionChart = () => {
   useEffect(() => {
     if (!user) return
 
+    // 過去12ヶ月分のデータを取得
+    const startDate = new Date()
+    startDate.setMonth(startDate.getMonth() - 11)
+    startDate.setDate(1)
+    startDate.setHours(0, 0, 0, 0)
+
     const q = query(
-      collection(db, 'subscriptions'),
-      where('userId', '==', user.uid)
+      collection(db, 'payment_history'),
+      where('userId', '==', user.uid),
+      where('paymentDate', '>=', startDate.toISOString().split('T')[0]),
+      orderBy('paymentDate', 'asc')
     )
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const rawData = snapshot.docs.map((doc) => doc.data() as Subscription)
-
+      const payments = snapshot.docs.map((doc) => doc.data() as PaymentHistory)
       const totals: Record<string, number> = {}
 
-      for (const item of rawData) {
-        const month = item.billingDate.slice(0, 7)
-        totals[month] = (totals[month] || 0) + (item.price || 0)
+      // 支払い履歴から月別合計を計算
+      for (const payment of payments) {
+        const month = payment.paymentDate.slice(0, 7)
+        totals[month] = (totals[month] || 0) + payment.amount
       }
 
+      // 過去12ヶ月分のデータを生成（支払いがない月は0円）
       const months = generateLast12Months()
       const fullData: MonthlyData[] = months.map((month) => ({
         month,

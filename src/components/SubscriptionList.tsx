@@ -10,7 +10,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { collection, onSnapshot, query, where, doc, updateDoc, addDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
 import { SubscriptionItem } from './SubscriptionItem'
@@ -26,6 +26,51 @@ export const SubscriptionList = () => {
   const { user } = useAuth()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
 
+  // 支出履歴を記録する
+  const recordPaymentHistory = async (subscription: Subscription, paymentDate: Date) => {
+    try {
+      await addDoc(collection(db, 'payment_history'), {
+        userId: user?.uid,
+        subscriptionId: subscription.id,
+        subscriptionName: subscription.name,
+        amount: subscription.price,
+        paymentDate: paymentDate.toISOString().split('T')[0],
+        createdAt: new Date()
+      })
+    } catch (error) {
+      console.error('支出履歴の記録に失敗しました:', error)
+    }
+  }
+
+  // 請求日の更新が必要かチェックし、必要な場合は更新する
+  const updateBillingDateIfNeeded = async (subscription: Subscription) => {
+    const today = new Date()
+    const billingDate = new Date(subscription.billingDate)
+    
+    if (billingDate < today) {
+      // 支出履歴を記録
+      await recordPaymentHistory(subscription, billingDate)
+
+      // 次回請求日を計算（翌月の同日）
+      const nextBillingDate = new Date(billingDate)
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+      
+      // 日付が存在しない場合（例：3/31 → 4/31）は月末に調整
+      while (nextBillingDate.getMonth() > billingDate.getMonth() + 1) {
+        nextBillingDate.setDate(nextBillingDate.getDate() - 1)
+      }
+
+      try {
+        await updateDoc(doc(db, 'subscriptions', subscription.id), {
+          billingDate: nextBillingDate.toISOString().split('T')[0]
+        })
+        console.log(`Updated billing date for ${subscription.name} to ${nextBillingDate.toISOString().split('T')[0]}`)
+      } catch (error) {
+        console.error('請求日の更新に失敗しました:', error)
+      }
+    }
+  }
+
   useEffect(() => {
     if (!user) return
 
@@ -40,6 +85,9 @@ export const SubscriptionList = () => {
         ...doc.data(),
       })) as Subscription[]
       setSubscriptions(data)
+
+      // 各サブスクリプションの請求日をチェック・更新
+      data.forEach(updateBillingDateIfNeeded)
     })
 
     return () => unsubscribe()
