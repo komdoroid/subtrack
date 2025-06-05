@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SubTrack - サブスクリプション管理アプリ
 
-## Getting Started
+## 📝 プロジェクト概要
 
-First, run the development server:
+SubTrackは、複数のサブスクリプションサービスを一元管理し、支出を可視化するためのWebアプリケーションです。
 
+### 主な機能
+
+- 📊 サブスクリプションの登録・編集・削除
+- 💰 月額・年額の合計金額の自動計算
+- 📅 支払い日の管理とリマインド
+- 🔍 カテゴリ別フィルタリングと並び替え
+- 📈 ダッシュボードでの支出分析
+- 🔐 セキュアなユーザー認証
+
+## 🛠 技術スタック
+
+- **フロントエンド**
+  - Next.js (App Router)
+  - TypeScript
+  - Tailwind CSS
+- **バックエンド**
+  - Firebase
+    - Firestore (データベース)
+    - Authentication (認証)
+    - Hosting (ホスティング)
+
+## 🚀 開発環境のセットアップ
+
+1. リポジトリのクローン:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone [repository-url]
+cd subtrack
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 依存関係のインストール:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. 環境変数の設定:
+`.env.local`ファイルを作成し、必要な環境変数を設定:
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. 開発サーバーの起動:
+```bash
+npm run dev
+```
 
-## Learn More
+アプリケーションは http://localhost:3000 で起動します。
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 本番環境へのデプロイ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+このプロジェクトはVercelへのデプロイを推奨しています：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. [Vercel](https://vercel.com)でアカウントを作成
+2. このリポジトリをインポート
+3. 環境変数を設定
+4. デプロイを実行
 
-## Deploy on Vercel
+## 🤝 コントリビューション
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. このリポジトリをフォーク
+2. 新しいブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 ライセンス
+
+このプロジェクトは[MITライセンス](LICENSE)の下で公開されています。
+
+## 👥 作者
+
+- 作者名 - [@GitHubユーザー名]
