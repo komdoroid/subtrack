@@ -22,16 +22,30 @@ export function useAuth(protect: boolean = true) {
   const router = useRouter()
 
   useEffect(() => {
+    console.log('useAuth: Starting auth state monitoring')
+    
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('useAuth: Auth state changed', {
+        currentUser: currentUser ? {
+          uid: currentUser.uid,
+          email: currentUser.email,
+        } : null,
+        protect,
+      })
+
       setUser(currentUser)
       setLoading(false)
 
       if (protect && !currentUser) {
+        console.log('useAuth: Redirecting to /auth due to no user')
         router.push('/auth')
       }
     })
 
-    return () => unsubscribe()
+    return () => {
+      console.log('useAuth: Cleaning up auth state monitoring')
+      unsubscribe()
+    }
   }, [protect, router])
 
   return { user, loading }
