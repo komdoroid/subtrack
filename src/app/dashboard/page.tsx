@@ -10,7 +10,6 @@
 
 import { useAuth } from '@/lib/useAuth'
 import { AppShell } from '@/components/layout/AppShell'
-import { Navbar } from '@/components/Navbar'
 import { SubscriptionList } from '@/components/SubscriptionList'
 import { SubscriptionForm } from '@/components/SubscriptionForm'
 import { SubscriptionChart } from '@/components/SubscriptionChart'
