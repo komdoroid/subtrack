@@ -12,7 +12,7 @@
  *      <YourPageContent />
  *   </AppShell>
  *
- * これにより “プロフェッショナル & シンプル” な 2 カラム UI が統一される。
+ * これにより "プロフェッショナル & シンプル" な 2 カラム UI が統一される。
  */
 
 'use client'
@@ -36,7 +36,7 @@ type Props = {
 /** サイドバー内のリンク情報 */
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'ダッシュボード' },
-  { href: '/subs', icon: ListOrdered, label: '一覧' },
+  { href: '/list', icon: ListOrdered, label: '一覧' },
   { href: '/analytics', icon: BarChart3, label: '分析' },
 ]
 
