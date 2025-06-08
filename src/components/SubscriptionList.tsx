@@ -2,9 +2,8 @@
  * SubscriptionList.tsx
  * ----------------------------------------
  * サブスクリプション一覧を表示するコンポーネント
- * - ページネーション機能付き
- * - ローディング状態の表示
- * - エラーハンドリング
+ * - 編集・削除機能
+ * - ページネーション機能
  */
 
 'use client'
@@ -12,13 +11,125 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import { useSubscriptionData } from '@/lib/hooks/useSubscriptionData'
+import { doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
+import { PencilIcon, TrashIcon } from 'lucide-react'
 
 // 1ページあたりの表示件数
 const ITEMS_PER_PAGE = 10
 
+interface EditModalProps {
+  subscription: any
+  isOpen: boolean
+  onClose: () => void
+  onSave: (updatedData: any) => Promise<void>
+}
+
+// 編集モーダルコンポーネント
+const EditModal = ({ subscription, isOpen, onClose, onSave }: EditModalProps) => {
+  const [name, setName] = useState(subscription.name)
+  const [price, setPrice] = useState(subscription.price)
+  const [category, setCategory] = useState(subscription.category)
+  const [billingDate, setBillingDate] = useState(subscription.billingDate)
+
+  if (!isOpen) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await onSave({
+      name,
+      price: Number(price),
+      category,
+      billingDate
+    })
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">サブスクリプションの編集</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block">
+              <span className="text-sm font-medium text-gray-700">サービス名</span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 w-full border p-2 rounded"
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label className="block">
+              <span className="text-sm font-medium text-gray-700">金額</span>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className="mt-1 w-full border p-2 rounded"
+                required
+                min="0"
+              />
+            </label>
+          </div>
+          <div>
+            <label className="block">
+              <span className="text-sm font-medium text-gray-700">カテゴリ</span>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="mt-1 w-full border p-2 rounded"
+              >
+                <option value="動画">動画</option>
+                <option value="音楽">音楽</option>
+                <option value="ゲーム">ゲーム</option>
+                <option value="仕事">仕事</option>
+                <option value="その他">その他</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label className="block">
+              <span className="text-sm font-medium text-gray-700">支払日</span>
+              <input
+                type="date"
+                value={billingDate}
+                onChange={(e) => setBillingDate(e.target.value)}
+                className="mt-1 w-full border p-2 rounded"
+                required
+              />
+            </label>
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              保存
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export const SubscriptionList = () => {
   const { user } = useAuth()
-  const { data: subscriptions, loading, error } = useSubscriptionData(user?.uid)
+  const { data: subscriptions, loading, error, mutate } = useSubscriptionData(user?.uid)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [editingSubscription, setEditingSubscription] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // デバッグ用のログ出力
   useEffect(() => {
@@ -28,8 +139,6 @@ export const SubscriptionList = () => {
     console.log('Error:', error)
   }, [user, subscriptions, loading, error])
 
-  const [currentPage, setCurrentPage] = useState(1)
-
   // ページネーションの計算
   const totalPages = Math.ceil(subscriptions.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
@@ -37,6 +146,40 @@ export const SubscriptionList = () => {
 
   // 合計金額の計算
   const totalPrice = subscriptions.reduce((sum, sub) => sum + sub.price, 0)
+
+  // 削除処理
+  const handleDelete = async (subscriptionId: string) => {
+    if (!window.confirm('このサブスクリプションを削除してもよろしいですか？')) {
+      return
+    }
+
+    try {
+      await deleteDoc(doc(db, 'subscriptionLogs', subscriptionId))
+      // 画面の表示を更新
+      mutate()
+    } catch (err) {
+      console.error('削除エラー:', err)
+      alert('削除中にエラーが発生しました')
+    }
+  }
+
+  // 編集処理
+  const handleEdit = (subscription: any) => {
+    setEditingSubscription(subscription)
+    setIsModalOpen(true)
+  }
+
+  const handleSave = async (updatedData: any) => {
+    try {
+      await updateDoc(doc(db, 'subscriptionLogs', editingSubscription.id), updatedData)
+      // 画面の表示を更新
+      mutate()
+      setIsModalOpen(false)
+    } catch (err) {
+      console.error('更新エラー:', err)
+      alert('更新中にエラーが発生しました')
+    }
+  }
 
   // ローディング表示
   if (loading) {
@@ -95,13 +238,31 @@ export const SubscriptionList = () => {
                   支払日: {subscription.billingDate}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-gray-900">
-                  ¥{subscription.price.toLocaleString()}
-                </p>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {subscription.category}
-                </span>
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">
+                    ¥{subscription.price.toLocaleString()}
+                  </p>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {subscription.category}
+                  </span>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEdit(subscription)}
+                    className="p-2 text-gray-600 hover:text-blue-600"
+                    title="編集"
+                  >
+                    <PencilIcon size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(subscription.id)}
+                    className="p-2 text-gray-600 hover:text-red-600"
+                    title="削除"
+                  >
+                    <TrashIcon size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -129,6 +290,16 @@ export const SubscriptionList = () => {
             次へ
           </button>
         </div>
+      )}
+
+      {/* 編集モーダル */}
+      {isModalOpen && (
+        <EditModal
+          subscription={editingSubscription}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+        />
       )}
     </div>
   )
