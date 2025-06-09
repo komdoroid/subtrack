@@ -9,17 +9,6 @@ import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { generateMonthlyLogsIfNeeded } from '../firebase/generateMonthlyLogsIfNeeded'
 
-interface SubscriptionTemplate {
-  id: string
-  userId: string
-  name: string
-  price: number
-  billingDay: number
-  category: string
-  isActive: boolean
-  createdAt: string
-}
-
 interface SubscriptionLog {
   id: string
   userId: string

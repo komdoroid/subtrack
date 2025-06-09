@@ -30,17 +30,6 @@ interface SubscriptionTemplate {
   createdAt: string
 }
 
-interface SubscriptionLog {
-  userId: string
-  name: string
-  price: number
-  category: string
-  billingDate: string
-  month: string
-  createdFrom: string
-  createdAt: string
-}
-
 // 最後の実行日時を保存するためのキー
 const LAST_EXECUTION_KEY = 'last_monthly_log_generation'
 
