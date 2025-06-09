@@ -36,7 +36,7 @@ interface Subscription {
 
 export default function SubscriptionListPage() {
   const { user, loading: authLoading } = useAuth(true)
-  const { data: subscriptions, loading, error, mutate } = useSubscriptionData(user?.uid)
+  const { data: subscriptions, loading, error } = useSubscriptionData(user?.uid)
   const [filteredSubscriptions, setFilteredSubscriptions] = useState<Subscription[]>([])
   const [filters, setFilters] = useState({
     category: 'all',
