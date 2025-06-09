@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-white">
       <h1 className="text-2xl font-bold text-gray-800">
-        ようこそ SubTrack（仮）へ！<br />
+        ようこそ SubTrackへ！<br />
         <a href="/auth" className="text-blue-500 underline">
           ログインページへ
         </a>
