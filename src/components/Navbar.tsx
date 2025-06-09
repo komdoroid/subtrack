@@ -25,8 +25,8 @@ export function Navbar() {
   }
 
   return (
-    <header className="w-full bg-white shadow-md p-4 flex justify-between items-center">
-      <h1 className="text-xl font-bold text-gray-800">SubTrack（仮）</h1>
+    <header className="w-full dark:bg-slate-900 shadow-md p-4 flex justify-between items-center">
+      <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">SubTrack</h1>
       <button
         onClick={handleLogout}
         className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
