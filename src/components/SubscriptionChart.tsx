@@ -13,8 +13,6 @@ import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestor
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
 import { useSubscriptionData } from '@/lib/hooks/useSubscriptionData'
-import { TooltipProps } from 'recharts'
-import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
 type PaymentHistory = {
   amount: number
@@ -48,19 +46,15 @@ const formatMonthLabel = (month: string): string => {
 }
 
 // カスタムツールチップ
-const CustomTooltip = ({ 
-  active, 
-  payload, 
-  label 
-}: TooltipProps<ValueType, NameType>) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload || !payload.length) return null
-  
+
   return (
     <div className="bg-white p-3 border rounded shadow">
       <p className="font-bold mb-2">{label}</p>
-      {payload.map((item, index) => (
+      {payload.map((item: any, index: number) => (
         <p key={index} className="text-sm" style={{ color: item.color }}>
-          {item.name}: ¥{item.value?.toLocaleString()}
+          {item.name}: ¥{item.value.toLocaleString()}
         </p>
       ))}
     </div>

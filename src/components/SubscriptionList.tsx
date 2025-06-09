@@ -18,19 +18,11 @@ import { PencilIcon, TrashIcon } from 'lucide-react'
 // 1ページあたりの表示件数
 const ITEMS_PER_PAGE = 10
 
-interface Subscription {
-  id: string
-  name: string
-  price: number
-  category: string
-  billingDate: string
-}
-
 interface EditModalProps {
-  subscription: Subscription
+  subscription: any
   isOpen: boolean
   onClose: () => void
-  onSave: (updatedData: Omit<Subscription, 'id'>) => Promise<void>
+  onSave: (updatedData: any) => Promise<void>
 }
 
 // 編集モーダルコンポーネント
@@ -136,7 +128,7 @@ export const SubscriptionList = () => {
   const { user } = useAuth()
   const { data: subscriptions, loading, error, mutate } = useSubscriptionData(user?.uid)
   const [currentPage, setCurrentPage] = useState(1)
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null)
+  const [editingSubscription, setEditingSubscription] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // デバッグ用のログ出力
@@ -172,22 +164,17 @@ export const SubscriptionList = () => {
   }
 
   // 編集処理
-  const handleEdit = (subscription: Subscription) => {
+  const handleEdit = (subscription: any) => {
     setEditingSubscription(subscription)
     setIsModalOpen(true)
   }
 
-  const handleSave = async (updatedData: Omit<Subscription, 'id'>) => {
-    if (!editingSubscription) {
-      console.error('編集対象のサブスクリプションが見つかりません')
-      return
-    }
-
+  const handleSave = async (updatedData: any) => {
     try {
       await updateDoc(doc(db, 'subscriptionLogs', editingSubscription.id), updatedData)
+      // 画面の表示を更新
       mutate()
       setIsModalOpen(false)
-      setEditingSubscription(null) // 編集完了後にnullに設定
     } catch (err) {
       console.error('更新エラー:', err)
       alert('更新中にエラーが発生しました')
@@ -306,14 +293,11 @@ export const SubscriptionList = () => {
       )}
 
       {/* 編集モーダル */}
-      {editingSubscription && (
+      {isModalOpen && (
         <EditModal
           subscription={editingSubscription}
           isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false)
-            setEditingSubscription(null)
-          }}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
         />
       )}

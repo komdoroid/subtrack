@@ -7,6 +7,8 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
+import { onSchedule, ScheduledEvent } from 'firebase-functions/v2/scheduler';
+import * as logger from "firebase-functions/logger";
 import * as functions from 'firebase-functions';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp } from 'firebase-admin/app';
@@ -19,8 +21,9 @@ import { initializeApp } from 'firebase-admin/app';
 //   response.send("Hello from Firebase!");
 // });
 
-// Initialize Firebase Admin
+// Firebase Adminの初期化
 initializeApp();
+const db = getFirestore();
 
 /**
  * 指定された日付の翌月同日を計算する
@@ -42,9 +45,12 @@ function calculateNextMonthDate(dateStr: string): string {
  * 毎日0時に実行され、その日が支払日のサブスクリプションの
  * 翌月分を自動作成するCloud Function
  */
-export const autoCreateNextMonthSubscriptions = functions.pubsub.schedule('0 0 * * *').timeZone('Asia/Tokyo').onRun(async (context) => {
-  const db = getFirestore();
-  
+export const autoCreateNextMonthSubscriptions = onSchedule({
+  schedule: '0 0 * * *',  // 毎日 午前0時
+  timeZone: 'Asia/Tokyo', // 日本時間
+  retryCount: 3,          // エラー時の再試行回数
+  memory: '256MiB'        // メモリ割り当て
+}, async (event: ScheduledEvent): Promise<void> => {
   try {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
@@ -115,9 +121,12 @@ export const autoCreateNextMonthSubscriptions = functions.pubsub.schedule('0 0 *
  * 毎日0時に実行され、期限切れのサブスクリプションに
  * isPast フラグを設定するCloud Function
  */
-export const markPastSubscriptions = functions.pubsub.schedule('0 0 * * *').timeZone('Asia/Tokyo').onRun(async (context) => {
-  const db = getFirestore();
-  
+export const markPastSubscriptions = onSchedule({
+  schedule: '0 0 * * *',  // 毎日 午前0時
+  timeZone: 'Asia/Tokyo', // 日本時間
+  retryCount: 3,          // エラー時の再試行回数
+  memory: '256MiB'        // メモリ割り当て
+}, async (event: ScheduledEvent): Promise<void> => {
   try {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
