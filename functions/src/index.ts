@@ -7,7 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import * as functions from 'firebase-functions';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp } from 'firebase-admin/app';
 
@@ -42,7 +42,10 @@ function calculateNextMonthDate(dateStr: string): string {
  * 毎日0時に実行され、その日が支払日のサブスクリプションの
  * 翌月分を自動作成するCloud Function
  */
-export const autoCreateNextMonthSubscriptions = functions.pubsub.schedule('0 0 * * *').timeZone('Asia/Tokyo').onRun(async (context) => {
+export const autoCreateNextMonthSubscriptions = onSchedule({
+  schedule: '0 0 * * *',
+  timeZone: 'Asia/Tokyo'
+}, async (event) => {
   const db = getFirestore();
   
   try {
@@ -115,7 +118,10 @@ export const autoCreateNextMonthSubscriptions = functions.pubsub.schedule('0 0 *
  * 毎日0時に実行され、期限切れのサブスクリプションに
  * isPast フラグを設定するCloud Function
  */
-export const markPastSubscriptions = functions.pubsub.schedule('0 0 * * *').timeZone('Asia/Tokyo').onRun(async (context) => {
+export const markPastSubscriptions = onSchedule({
+  schedule: '0 0 * * *',
+  timeZone: 'Asia/Tokyo'
+}, async (event) => {
   const db = getFirestore();
   
   try {
