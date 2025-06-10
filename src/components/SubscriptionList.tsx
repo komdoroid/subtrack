@@ -218,9 +218,9 @@ export const SubscriptionList = () => {
     return (
       <div className="p-4 text-center text-gray-500">
         <p>サブスクリプションが登録されていません</p>
-        <p className="text-sm mt-2">
+        {/* <p className="text-sm mt-2">
           ユーザーID: {user?.uid || 'Not authenticated'}
-        </p>
+        </p> */}
       </div>
     )
   }

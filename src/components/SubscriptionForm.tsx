@@ -70,7 +70,7 @@ export const SubscriptionForm = () => {
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow p-6 rounded w-full max-w-2xl">
       <h2 className="text-xl font-semibold mb-4 text-gray-800">
-        新しいサブスクリプションを追加
+        新しいサブスクリプションを登録
       </h2>
 
       {/* サービス名 */}
