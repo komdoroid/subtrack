@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -14,6 +16,9 @@ import {
   TooltipProps,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 
 type MonthlyData = {
   month: string;
@@ -25,27 +30,6 @@ type CategoryData = {
   category: string;
   total: number;
 };
-
-interface AnalysisPageProps {
-  monthlyData: MonthlyData[];
-  categoryData: CategoryData[];
-}
-
-const sampleMonthlyData: MonthlyData[] = [
-  { month: '2024-01', total: 45000 },
-  { month: '2024-02', total: 48000 },
-  { month: '2024-03', total: 52000 },
-  { month: '2024-04', total: 47000 },
-  { month: '2024-05', total: 55000 },
-  { month: '2024-06', total: 58000 },
-];
-
-const sampleCategoryData: CategoryData[] = [
-  { category: 'ストリーミング', total: 5000 },
-  { category: 'ショッピング', total: 15000 },
-  { category: '学習', total: 8000 },
-  { category: 'その他', total: 12000 },
-];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -85,10 +69,88 @@ const CustomPieChartTooltip = ({ active, payload }: TooltipProps<number, string>
   return null;
 };
 
-export const AnalysisPage: React.FC<Partial<AnalysisPageProps>> = ({
-  monthlyData = sampleMonthlyData,
-  categoryData = sampleCategoryData,
-}) => {
+export const AnalysisPage: React.FC = () => {
+  const { user } = useAuth();
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+
+      try {
+        // サブスクリプションデータの取得
+        const subscriptionsRef = collection(db, 'subscriptions');
+        const subscriptionsQuery = query(
+          subscriptionsRef,
+          where('userId', '==', user.uid),
+          where('isActive', '==', true)
+        );
+        const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
+        
+        // カテゴリごとの合計を計算
+        const categoryTotals: { [key: string]: number } = {};
+        subscriptionsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const category = data.category || 'その他';
+          categoryTotals[category] = (categoryTotals[category] || 0) + (data.price || 0);
+        });
+
+        const categoryResults: CategoryData[] = Object.entries(categoryTotals)
+          .map(([category, total]) => ({
+            category,
+            total,
+          }))
+          .sort((a, b) => b.total - a.total); // 金額の大きい順にソート
+
+        // 月別データの計算
+        const today = new Date();
+        const monthlyResults: MonthlyData[] = [];
+        
+        // 過去6ヶ月分のデータを生成
+        for (let i = 0; i < 6; i++) {
+          const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+          const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          
+          // その月のアクティブなサブスクリプションの合計を計算
+          let total = 0;
+          subscriptionsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            const startDate = new Date(data.startDate);
+            const endDate = data.endDate ? new Date(data.endDate) : null;
+            
+            if (startDate <= date && (!endDate || endDate >= date)) {
+              total += data.price || 0;
+            }
+          });
+          
+          monthlyResults.push({
+            month,
+            total,
+          });
+        }
+
+        setMonthlyData(monthlyResults.reverse()); // 古い順に並び替え
+        setCategoryData(categoryResults);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+        <div className="text-gray-600">データを読み込み中...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
