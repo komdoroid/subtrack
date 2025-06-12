@@ -1,9 +1,19 @@
-// firebase.ts
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// 作成日: 2025-06-12
+// 機能概要: Firebaseアプリの初期化とAuth/Firestoreインスタンスの提供
+// 備考: 環境変数によってEmulatorと本番環境を切り替え可能
 
-export const firebaseConfig = {
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  connectAuthEmulator,
+} from "firebase/auth";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+} from "firebase/firestore";
+
+// Firebase 設定情報（環境変数から取得）
+const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
@@ -12,6 +22,18 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// Firebase アプリ初期化
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// サービスインスタンスの取得
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Emulator環境であればローカル接続に切り替える
+if (process.env.NEXT_PUBLIC_USE_EMULATOR === "true") {
+  console.log("⚡ Using Firebase Emulators");
+  connectAuthEmulator(auth, "http://localhost:9099");
+  connectFirestoreEmulator(db, "localhost", 8080);
+}
+
+export { auth, db };
