@@ -21,12 +21,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthProvider: Starting auth state monitoring');
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log('AuthProvider: Auth state changed', {
+        user: user ? {
+          uid: user.uid,
+          email: user.email,
+        } : null
+      });
+      
       setUser(user);
+      setLoading(false);
+    }, (error) => {
+      console.error('AuthProvider: Auth state error', error);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('AuthProvider: Cleaning up auth state monitoring');
+      unsubscribe();
+    };
   }, []);
 
   return (

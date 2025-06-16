@@ -32,8 +32,13 @@ const db = getFirestore(app);
 // Emulator環境であればローカル接続に切り替える
 if (process.env.NEXT_PUBLIC_USE_EMULATOR === "true") {
   console.log("⚡ Using Firebase Emulators");
-  connectAuthEmulator(auth, "http://localhost:9099");
-  connectFirestoreEmulator(db, "localhost", 8080);
+  try {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    console.log("✅ Successfully connected to Firebase Emulators");
+  } catch (error) {
+    console.error("❌ Failed to connect to Firebase Emulators:", error);
+  }
 }
 
 export { auth, db };
