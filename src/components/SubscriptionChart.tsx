@@ -3,6 +3,8 @@
  * ----------------------------------------
  * 作成日: 2025-06-02
  * 概要  : 過去6ヶ月分の月別サブスク支出と今月の予定支出を棒グラフ表示
+ * 更新日: 2025-01-XX
+ * 更新内容: 統一されたsubscriptionsコレクションに対応
  */
 
 'use client'
@@ -12,13 +14,25 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
-import { useSubscriptionData } from '@/lib/hooks/useSubscriptionData'
 import { TooltipProps } from 'recharts'
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
-type PaymentHistory = {
-  amount: number
-  paymentDate: string // 'YYYY-MM-DD'
+// 新しいデータ構造に対応した型定義
+type Subscription = {
+  id: string
+  userId: string
+  name: string
+  price: number
+  category: string
+  billingDay: number
+  isActive: boolean
+  month: string | null // 'YYYY-MM'形式、履歴の場合に使用
+  createdFrom: string | null
+  startDate: string
+  endDate: string | null
+  description: string | null
+  createdAt: any // timestamp
+  updatedAt: any // timestamp
 }
 
 type MonthlyData = {
@@ -70,42 +84,45 @@ const CustomTooltip = ({
 export const SubscriptionChart = () => {
   const { user } = useAuth()
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
-  const { data: currentSubscriptions } = useSubscriptionData(user?.uid)
 
   useEffect(() => {
     if (!user) return
 
-    // 過去6ヶ月分のデータを取得
-    const startDate = new Date()
-    startDate.setMonth(startDate.getMonth() - 5)
-    startDate.setDate(1)
-    startDate.setHours(0, 0, 0, 0)
-
+    // subscriptionsコレクションからデータを取得
     const q = query(
-      collection(db, 'payment_history'),
+      collection(db, 'subscriptions'),
       where('userId', '==', user.uid),
-      where('paymentDate', '>=', startDate.toISOString().split('T')[0]),
-      orderBy('paymentDate', 'asc')
+      orderBy('createdAt', 'asc')
     )
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const payments = snapshot.docs.map((doc) => doc.data() as PaymentHistory)
-      const totals: Record<string, number> = {}
+      const subscriptions = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Subscription[]
 
-      // 支払い履歴から月別合計を計算
-      for (const payment of payments) {
-        const month = payment.paymentDate.slice(0, 7)
-        totals[month] = (totals[month] || 0) + payment.amount
+      // 実績支出の計算（monthが存在する履歴データ）
+      const historicalData = subscriptions.filter(sub => sub.month !== null)
+      const actualTotals: Record<string, number> = {}
+
+      for (const subscription of historicalData) {
+        const month = subscription.month!
+        actualTotals[month] = (actualTotals[month] || 0) + subscription.price
       }
+
+      // 今月の予定支出の計算（isActive: true かつ monthがnullまたは存在しない）
+      const currentSubscriptions = subscriptions.filter(sub => 
+        sub.isActive && (sub.month === null || sub.month === undefined)
+      )
+      const currentMonthTotal = currentSubscriptions.reduce((sum, sub) => sum + sub.price, 0)
 
       // 過去6ヶ月分と今月のデータを生成
       const months = generateLast6Months()
       const currentMonth = new Date().toISOString().slice(0, 7)
-      const currentMonthTotal = currentSubscriptions?.reduce((sum, sub) => sum + sub.price, 0) || 0
 
       const fullData: MonthlyData[] = months.map((month) => ({
         month: formatMonthLabel(month),
-        actual: totals[month] || 0,
+        actual: actualTotals[month] || 0,
         ...(month === currentMonth ? { planned: currentMonthTotal } : {})
       }))
 
@@ -113,7 +130,7 @@ export const SubscriptionChart = () => {
     })
 
     return () => unsubscribe()
-  }, [user, currentSubscriptions])
+  }, [user])
 
   if (!user) return null
   if (!monthlyData.length) return <p>データがありません。</p>
