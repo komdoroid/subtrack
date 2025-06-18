@@ -3,6 +3,8 @@
  * ----------------------------------------
  * 作成日: 2024-03-21
  * 概要  : 全てのサブスクリプションを一覧表示するページ
+ * 更新日: 2025-01-XX
+ * 更新内容: billingDateとmonthの表示改善、フィルター機能の修正
  */
 
 'use client'
@@ -34,8 +36,20 @@ interface Subscription {
   month: string
 }
 
+// 月の表示を整形する関数
+const formatMonthDisplay = (month: string): string => {
+  if (!month || month === 'null') return '現在'
+  return month
+}
+
+// 支払日の表示を整形する関数
+const formatBillingDateDisplay = (billingDate: string): string => {
+  if (!billingDate || billingDate === '未設定') return '未設定'
+  return billingDate
+}
+
 export default function SubscriptionListPage() {
-  const { user, loading: authLoading } = useAuth(true)
+  const { user, loading: authLoading } = useAuth()
   const { data: subscriptions, loading, error } = useSubscriptionData(user?.uid)
   const [filteredSubscriptions, setFilteredSubscriptions] = useState<Subscription[]>([])
   const [filters, setFilters] = useState({
@@ -48,6 +62,13 @@ export default function SubscriptionListPage() {
 
   // フィルタリング処理
   useEffect(() => {
+    console.log({
+      user,
+      subscriptions,
+      filteredSubscriptions,
+      filters,
+      error,
+    })
     if (!subscriptions) return
 
     let filtered = [...subscriptions]
@@ -59,7 +80,13 @@ export default function SubscriptionListPage() {
 
     // 月フィルター
     if (filters.month && filters.month !== 'all') {
-      filtered = filtered.filter(sub => sub.month === filters.month)
+      if (filters.month === '現在') {
+        // "現在"が選択された場合、現在の年月（YYYY-MM）と一致するものをフィルター
+        const currentMonth = new Date().toISOString().slice(0, 7)
+        filtered = filtered.filter(sub => sub.month === currentMonth)
+      } else {
+        filtered = filtered.filter(sub => sub.month === filters.month)
+      }
     }
 
     // 価格範囲フィルター
@@ -80,7 +107,7 @@ export default function SubscriptionListPage() {
     }
 
     setFilteredSubscriptions(filtered)
-  }, [subscriptions, filters])
+  }, [subscriptions, filters, user, error])
 
   // 編集ボタンのハンドラー
   const handleEdit = (subscription: Subscription) => {
@@ -94,7 +121,8 @@ export default function SubscriptionListPage() {
     // TODO: 削除確認ダイアログを表示する処理を実装
   }
 
-  if (authLoading || loading) {
+  // 認証中またはユーザーが未定義の場合はローディング表示
+  if (authLoading || !user) {
     return (
       <AppShell>
         <div className="min-h-screen flex items-center justify-center">
@@ -107,9 +135,32 @@ export default function SubscriptionListPage() {
     )
   }
 
+  // データ読み込み中の場合はローディング表示
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center gap-2 text-gray-600">
+            <Loader2Icon className="h-6 w-6 animate-spin" />
+            <span>データを読み込み中...</span>
+          </div>
+        </div>
+      </AppShell>
+    )
+  }
+
   const uniqueCategories = Array.from(new Set(subscriptions?.map(sub => sub.category) || []))
-  const uniqueMonths = Array.from(new Set(subscriptions?.map(sub => sub.month) || []))
-    .sort((a, b) => b.localeCompare(a)) // 月を降順にソート
+  
+  // 月フィルター用の選択肢を生成（nullを"現在"に変換）
+  const uniqueMonths = Array.from(new Set(subscriptions?.map(sub => {
+    const currentMonth = new Date().toISOString().slice(0, 7)
+    return sub.month === currentMonth ? '現在' : sub.month
+  }) || []))
+    .sort((a, b) => {
+      if (a === '現在') return -1
+      if (b === '現在') return 1
+      return b.localeCompare(a) // 月を降順にソート
+    })
 
   return (
     <AppShell>
@@ -154,7 +205,7 @@ export default function SubscriptionListPage() {
                     <SelectValue placeholder="月を選択" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="all" className="text-gray-900 hover:bg-gray-50">All</SelectItem>
+                    <SelectItem value="all" className="text-gray-900 hover:bg-gray-50">すべて</SelectItem>
                     {uniqueMonths.map(month => (
                       <SelectItem key={month} value={month} className="text-gray-900 hover:bg-gray-50">
                         {month}
@@ -229,8 +280,8 @@ export default function SubscriptionListPage() {
                         </p>
                       </div>
                       <div className="text-sm text-gray-500 space-y-1 mb-4">
-                        <p>支払日: {subscription.billingDate}</p>
-                        <p>対象月: {subscription.month}</p>
+                        <p>支払日: {formatBillingDateDisplay(subscription.billingDate)}</p>
+                        <p>対象月: {formatMonthDisplay(subscription.month)}</p>
                       </div>
                       <div className="flex justify-end space-x-2">
                         <Button

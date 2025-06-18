@@ -3,7 +3,7 @@
  * ----------------------------------------
  * サブスクリプションデータを取得・キャッシュするカスタムフック
  * 更新日: 2025-01-XX
- * 更新内容: 統一されたsubscriptionsコレクションに対応
+ * 更新内容: subscriptionsコレクションのみを使用、全サブスクリプションを一括取得
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -55,8 +55,11 @@ export const useSubscriptionData = (userId: string | undefined) => {
   const [error, setError] = useState<Error | null>(null)
 
   const fetchData = useCallback(async () => {
+    // userIdが未定義の場合は早期リターン
     if (!userId) {
+      setData([])
       setLoading(false)
+      setError(null)
       return
     }
 
@@ -78,57 +81,30 @@ export const useSubscriptionData = (userId: string | undefined) => {
         }
       }
 
-      // 1. 月別履歴データの取得（monthが'YYYY-MM'形式のもの）
-      const historicalQuery = query(
+      // subscriptionsコレクションから全データを一括取得
+      const subscriptionsQuery = query(
         collection(db, 'subscriptions'),
-        where('userId', '==', userId),
-        where('month', '==', currentMonth)
+        where('userId', '==', userId)
       )
-      const historicalSnapshot = await getDocs(historicalQuery)
-      const historicalData = historicalSnapshot.docs.map(doc => ({
+      const snapshot = await getDocs(subscriptionsQuery)
+      const allSubscriptions = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Subscription[]
 
-      // 2. 現在契約中データの取得（monthがnullまたは未定義でisActive: true）
-      const currentQuery = query(
-        collection(db, 'subscriptions'),
-        where('userId', '==', userId),
-        where('isActive', '==', true)
-      )
-      const currentSnapshot = await getDocs(currentQuery)
-      const currentData = currentSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Subscription[]
-
-      // 現在契約中のデータから、monthがnullまたは未定義のものを抽出
-      const activeSubscriptions = currentData.filter(sub => 
-        sub.month === null || sub.month === undefined
-      )
-
-      // 3. データの統合と変換
+      // データの変換と統合
       const mergedData: SubscriptionLog[] = []
 
-      // 履歴データを追加
-      historicalData.forEach(sub => {
-        mergedData.push({
-          id: sub.id,
-          userId: sub.userId,
-          name: sub.name,
-          price: sub.price,
-          category: sub.category,
-          billingDate: sub.startDate, // startDateをbillingDateとして使用
-          month: sub.month!,
-          createdFrom: sub.createdFrom || sub.id,
-          createdAt: sub.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
-        })
-      })
-
-      // 現在契約中のデータを追加（履歴に存在しないもののみ）
-      activeSubscriptions.forEach(sub => {
-        const existsInHistory = historicalData.some(hist => hist.name === sub.name)
-        if (!existsInHistory) {
+      allSubscriptions.forEach(sub => {
+        // monthがnullの場合は現在契約中として扱い、当月として設定
+        const month = sub.month || currentMonth
+        
+        // 重複チェック（同じ名前で同じ月のデータが既に存在する場合はスキップ）
+        const exists = mergedData.some(existing => 
+          existing.name === sub.name && existing.month === month
+        )
+        
+        if (!exists) {
           mergedData.push({
             id: sub.id,
             userId: sub.userId,
@@ -136,7 +112,7 @@ export const useSubscriptionData = (userId: string | undefined) => {
             price: sub.price,
             category: sub.category,
             billingDate: sub.startDate, // startDateをbillingDateとして使用
-            month: currentMonth,
+            month: month,
             createdFrom: sub.createdFrom || sub.id,
             createdAt: sub.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
           })

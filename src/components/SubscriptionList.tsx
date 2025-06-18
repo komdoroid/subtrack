@@ -4,33 +4,49 @@
  * サブスクリプション一覧を表示するコンポーネント
  * - 編集・削除機能
  * - ページネーション機能
+ * 更新日: 2025-01-XX
+ * 更新内容: subscriptionsコレクションに対応、billingDayフィールドを使用
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
-import { useSubscriptionData } from '@/lib/hooks/useSubscriptionData'
-import { doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 
 // 1ページあたりの表示件数
 const ITEMS_PER_PAGE = 10
 
+// 統一されたsubscriptionsコレクションの型定義
 interface Subscription {
   id: string
+  userId: string
   name: string
   price: number
   category: string
-  billingDate: string
+  billingDay: number
+  isActive: boolean
+  month: string | null
+  createdFrom: string | null
+  startDate: string
+  endDate: string | null
+  description: string | null
+  createdAt: any
+  updatedAt: any
 }
 
 interface EditModalProps {
   subscription: Subscription
   isOpen: boolean
   onClose: () => void
-  onSave: (updatedData: Omit<Subscription, 'id'>) => Promise<void>
+  onSave: (updatedData: Partial<Subscription>) => Promise<void>
+}
+
+// 請求日を表示用に変換する関数
+const formatBillingDay = (billingDay: number): string => {
+  return `${billingDay}日`
 }
 
 // 編集モーダルコンポーネント
@@ -38,7 +54,21 @@ const EditModal = ({ subscription, isOpen, onClose, onSave }: EditModalProps) =>
   const [name, setName] = useState(subscription.name)
   const [price, setPrice] = useState(subscription.price)
   const [category, setCategory] = useState(subscription.category)
-  const [billingDate, setBillingDate] = useState(subscription.billingDate)
+  const [billingDay, setBillingDay] = useState(subscription.billingDay)
+
+  // 請求日の選択肢（1〜31日）
+  const billingDays = Array.from({ length: 31 }, (_, i) => i + 1)
+
+  // カテゴリの選択肢
+  const categories = [
+    '動画配信',
+    '音楽配信',
+    'ゲーム',
+    '学習',
+    'ニュース',
+    'クラウドストレージ',
+    'その他'
+  ]
 
   if (!isOpen) return null
 
@@ -48,7 +78,8 @@ const EditModal = ({ subscription, isOpen, onClose, onSave }: EditModalProps) =>
       name,
       price: Number(price),
       category,
-      billingDate
+      billingDay: Number(billingDay),
+      updatedAt: serverTimestamp()
     })
     onClose()
   }
@@ -91,24 +122,28 @@ const EditModal = ({ subscription, isOpen, onClose, onSave }: EditModalProps) =>
                 onChange={(e) => setCategory(e.target.value)}
                 className="mt-1 w-full border p-2 rounded"
               >
-                <option value="動画">動画</option>
-                <option value="音楽">音楽</option>
-                <option value="ゲーム">ゲーム</option>
-                <option value="仕事">仕事</option>
-                <option value="その他">その他</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
           <div>
             <label className="block">
-              <span className="text-sm font-medium text-gray-700">支払日</span>
-              <input
-                type="date"
-                value={billingDate}
-                onChange={(e) => setBillingDate(e.target.value)}
+              <span className="text-sm font-medium text-gray-700">請求日</span>
+              <select
+                value={billingDay}
+                onChange={(e) => setBillingDay(Number(e.target.value))}
                 className="mt-1 w-full border p-2 rounded"
-                required
-              />
+              >
+                {billingDays.map((day) => (
+                  <option key={day} value={day}>
+                    {day}日
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <div className="flex justify-end space-x-2 mt-4">
@@ -134,10 +169,49 @@ const EditModal = ({ subscription, isOpen, onClose, onSave }: EditModalProps) =>
 
 export const SubscriptionList = () => {
   const { user } = useAuth()
-  const { data: subscriptions, loading, error, mutate } = useSubscriptionData(user?.uid)
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // 現在契約中のサブスクリプションを取得
+  const fetchSubscriptions = async () => {
+    if (!user) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      const q = query(
+        collection(db, 'subscriptions'),
+        where('userId', '==', user.uid),
+        where('isActive', '==', true),
+        where('month', '==', null)
+      )
+      
+      const snapshot = await getDocs(q)
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Subscription[]
+      
+      setSubscriptions(data)
+      setError(null)
+    } catch (err) {
+      console.error('サブスクリプション取得エラー:', err)
+      setError(err instanceof Error ? err : new Error('Unknown error'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 初回読み込みとユーザー変更時の再取得
+  useEffect(() => {
+    fetchSubscriptions()
+  }, [user])
 
   // デバッグ用のログ出力
   useEffect(() => {
@@ -162,9 +236,9 @@ export const SubscriptionList = () => {
     }
 
     try {
-      await deleteDoc(doc(db, 'subscriptionLogs', subscriptionId))
+      await deleteDoc(doc(db, 'subscriptions', subscriptionId))
       // 画面の表示を更新
-      mutate()
+      fetchSubscriptions()
     } catch (err) {
       console.error('削除エラー:', err)
       alert('削除中にエラーが発生しました')
@@ -177,15 +251,15 @@ export const SubscriptionList = () => {
     setIsModalOpen(true)
   }
 
-  const handleSave = async (updatedData: Omit<Subscription, 'id'>) => {
+  const handleSave = async (updatedData: Partial<Subscription>) => {
     if (!editingSubscription) {
       console.error('編集対象のサブスクリプションが見つかりません')
       return
     }
 
     try {
-      await updateDoc(doc(db, 'subscriptionLogs', editingSubscription.id), updatedData)
-      mutate()
+      await updateDoc(doc(db, 'subscriptions', editingSubscription.id), updatedData)
+      fetchSubscriptions()
       setIsModalOpen(false)
       setEditingSubscription(null) // 編集完了後にnullに設定
     } catch (err) {
@@ -218,9 +292,6 @@ export const SubscriptionList = () => {
     return (
       <div className="p-4 text-center text-gray-500">
         <p>サブスクリプションが登録されていません</p>
-        {/* <p className="text-sm mt-2">
-          ユーザーID: {user?.uid || 'Not authenticated'}
-        </p> */}
       </div>
     )
   }
@@ -248,7 +319,7 @@ export const SubscriptionList = () => {
                   {subscription.name}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  支払日: {subscription.billingDate}
+                  支払日: {formatBillingDay(subscription.billingDay)}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
