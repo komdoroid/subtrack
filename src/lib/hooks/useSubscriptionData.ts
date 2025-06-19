@@ -58,7 +58,6 @@ export const useSubscriptionData = (userId: string | undefined) => {
     // userIdが未定義の場合は早期リターン
     if (!userId) {
       setData([])
-      setLoading(false)
       setError(null)
       return
     }
@@ -74,7 +73,8 @@ export const useSubscriptionData = (userId: string | undefined) => {
         const cacheData: CacheData = JSON.parse(cached)
         const isExpired = Date.now() - cacheData.timestamp > CACHE_EXPIRY
 
-        if (!isExpired) {
+        const cachedUserId = cacheData.data[0]?.userId
+        if (!isExpired && cachedUserId === userId) {
           setData(cacheData.data)
           setLoading(false)
           return
@@ -137,8 +137,12 @@ export const useSubscriptionData = (userId: string | undefined) => {
   }, [userId])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (userId) {
+      fetchData()
+      console.log('[fetchData] Fetched subscriptions:', data)
+      console.log('[fetchData] Final merged data:', data)
+    }
+  }, [fetchData, userId])
 
   return { data, loading, error, mutate: fetchData }
 } 
