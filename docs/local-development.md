@@ -80,7 +80,7 @@ npm run dev
 ✅ Successfully connected to Firebase Emulators
 ```
 
-### 4. ダミーデータの豆乳
+### 4. ダミーデータの投入
 
 ```bash
 npx tsx src/scripts/seedDummyData.ts
