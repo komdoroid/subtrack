@@ -28,6 +28,7 @@ import {
 } from 'lucide-react' // lucide-react を導入済み想定
 import { useRouter } from 'next/navigation'
 import { auth } from '@/firebase'
+import { AuthProvider } from '@/context/AuthContext'
 
 type Props = {
   children: ReactNode
@@ -49,7 +50,8 @@ export const AppShell = ({ children }: Props) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-darkBg">
+    <AuthProvider>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-darkBg">
       {/* 上部バー */}
       <Navbar />
 
@@ -86,7 +88,8 @@ export const AppShell = ({ children }: Props) => {
 
         {/* ---- Main content ---- */}
         <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        </div>
       </div>
-    </div>
+    </AuthProvider>
   )
 }
