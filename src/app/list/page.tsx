@@ -34,18 +34,32 @@ interface Subscription {
   category: string
   billingDate: string
   month: string
+  startDate: string
+  endDate: string | null
+  isActive?: boolean
 }
 
-// 月の表示を整形する関数
-const formatMonthDisplay = (month: string): string => {
-  if (!month || month === 'null') return '現在'
-  return month
+// 日付の表示を整形する関数
+const formatDateDisplay = (date: string | null | undefined): string => {
+  if (!date || date === 'null') return '未設定'
+  return date
 }
 
 // 支払日の表示を整形する関数
 const formatBillingDateDisplay = (billingDate: string): string => {
   if (!billingDate || billingDate === '未設定') return '未設定'
   return billingDate
+}
+
+// 指定された月がstartDateとendDateの範囲内にあるかチェックする関数
+const isMonthInRange = (targetMonth: string, startDate: string | null | undefined, endDate: string | null | undefined): boolean => {
+  if (!startDate) return false
+  
+  const target = new Date(targetMonth + '-01')
+  const start = new Date(startDate.slice(0, 7) + '-01')
+  const end = endDate ? new Date(endDate.slice(0, 7) + '-01') : new Date()
+  
+  return target >= start && target <= end
 }
 
 export default function SubscriptionListPage() {
@@ -83,9 +97,9 @@ export default function SubscriptionListPage() {
       if (filters.month === '現在') {
         // "現在"が選択された場合、現在の年月（YYYY-MM）と一致するものをフィルター
         const currentMonth = new Date().toISOString().slice(0, 7)
-        filtered = filtered.filter(sub => sub.month === currentMonth)
+        filtered = filtered.filter(sub => isMonthInRange(currentMonth, sub.startDate, sub.endDate))
       } else {
-        filtered = filtered.filter(sub => sub.month === filters.month)
+        filtered = filtered.filter(sub => isMonthInRange(filters.month, sub.startDate, sub.endDate))
       }
     }
 
@@ -154,7 +168,7 @@ export default function SubscriptionListPage() {
   // 月フィルター用の選択肢を生成（nullを"現在"に変換）
   const uniqueMonths = Array.from(new Set(subscriptions?.map(sub => {
     const currentMonth = new Date().toISOString().slice(0, 7)
-    return sub.month === currentMonth ? '現在' : sub.month
+    return isMonthInRange(currentMonth, sub.startDate, sub.endDate) ? '現在' : sub.month
   }) || []))
     .sort((a, b) => {
       if (a === '現在') return -1
@@ -281,7 +295,8 @@ export default function SubscriptionListPage() {
                       </div>
                       <div className="text-sm text-gray-500 space-y-1 mb-4">
                         <p>支払日: {formatBillingDateDisplay(subscription.billingDate)}</p>
-                        <p>対象月: {formatMonthDisplay(subscription.month)}</p>
+                        <p>開始日: {formatDateDisplay(subscription.startDate)}</p>
+                        <p>終了日: {formatDateDisplay(subscription.endDate)}</p>
                       </div>
                       <div className="flex justify-end space-x-2">
                         <Button

@@ -39,6 +39,9 @@ interface SubscriptionLog {
   month: string
   createdFrom: string
   createdAt: string
+  startDate: string
+  endDate: string | null
+  isActive: boolean
 }
 
 // キャッシュの有効期限（1時間）
@@ -114,7 +117,10 @@ export const useSubscriptionData = (userId: string | undefined) => {
             billingDate: sub.startDate, // startDateをbillingDateとして使用
             month: month,
             createdFrom: sub.createdFrom || sub.id,
-            createdAt: sub.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            createdAt: sub.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            startDate: sub.startDate,
+            endDate: sub.endDate,
+            isActive: sub.isActive
           })
         }
       })
