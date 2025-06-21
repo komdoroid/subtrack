@@ -211,7 +211,7 @@ export const SubscriptionList = () => {
   // 初回読み込みとユーザー変更時の再取得
   useEffect(() => {
     fetchSubscriptions()
-  }, [])
+  }, [user])
 
   // デバッグ用のログ出力
   useEffect(() => {
