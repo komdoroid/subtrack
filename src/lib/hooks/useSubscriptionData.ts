@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
 
 // 統一されたsubscriptionsコレクションの型定義
@@ -24,8 +24,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: any // timestamp
-  updatedAt: any // timestamp
+  createdAt: Timestamp // timestamp
+  updatedAt: Timestamp // timestamp
 }
 
 // 戻り値の型定義（既存のSubscriptionLogとの互換性を保つ）
@@ -139,8 +139,6 @@ export const useSubscriptionData = (userId: string | undefined) => {
   useEffect(() => {
     if (userId) {
       fetchData()
-      console.log('[fetchData] Fetched subscriptions:', data)
-      console.log('[fetchData] Final merged data:', data)
     }
   }, [fetchData, userId])
 

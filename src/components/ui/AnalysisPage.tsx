@@ -138,7 +138,6 @@ export const AnalysisPage: React.FC = () => {
         }));
 
         // ⑤ 当月のカテゴリ別データを計算
-        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
         const currentMonthTotals: { [key: string]: number } = {};
         
         for (const sub of allSbuscriptions) {
