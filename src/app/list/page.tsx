@@ -65,6 +65,7 @@ export default function SubscriptionListPage() {
     console.log({
       user,
       subscriptions,
+      filteredSubscriptions,
       filters,
       error,
     })

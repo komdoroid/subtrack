@@ -24,8 +24,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: Timestamp // timestamp
-  updatedAt: Timestamp // timestamp
+  createdAt: any // timestamp
+  updatedAt: any // timestamp
 }
 
 // 戻り値の型定義（既存のSubscriptionLogとの互換性を保つ）
@@ -139,6 +139,8 @@ export const useSubscriptionData = (userId: string | undefined) => {
   useEffect(() => {
     if (userId) {
       fetchData()
+      console.log('[fetchData] Fetched subscriptions:', data)
+      console.log('[fetchData] Final merged data:', data)
     }
   }, [fetchData, userId])
 

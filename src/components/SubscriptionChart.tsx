@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { collection, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore'
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
 import { TooltipProps } from 'recharts'
@@ -31,8 +31,8 @@ type Subscription = {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: Timestamp // timestamp
-  updatedAt: Timestamp // timestamp
+  createdAt: any // timestamp
+  updatedAt: any // timestamp
 }
 
 type MonthlyData = {

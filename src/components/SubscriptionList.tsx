@@ -10,9 +10,9 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
-import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 
@@ -33,8 +33,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: Timestamp
-  updatedAt: Timestamp | FieldValue
+  createdAt: any
+  updatedAt: any
 }
 
 interface EditModalProps {
@@ -177,7 +177,7 @@ export const SubscriptionList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // 現在契約中のサブスクリプションを取得
-  const fetchSubscriptions = useCallback(async () => {
+  const fetchSubscriptions = async () => {
     if (!user) {
       setLoading(false)
       return
@@ -206,12 +206,12 @@ export const SubscriptionList = () => {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }
 
   // 初回読み込みとユーザー変更時の再取得
   useEffect(() => {
     fetchSubscriptions()
-  }, [fetchSubscriptions])
+  }, [])
 
   // デバッグ用のログ出力
   useEffect(() => {
