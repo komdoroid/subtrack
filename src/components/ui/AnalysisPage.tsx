@@ -85,53 +85,90 @@ export const AnalysisPage: React.FC = () => {
         const subscriptionsQuery = query(
           subscriptionsRef,
           where('userId', '==', user.uid),
-          where('isActive', '==', true)
+          // where('isActive', '==', true)
         );
         const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
         
-        // カテゴリごとの合計を計算
-        const categoryTotals: { [key: string]: number } = {};
-        subscriptionsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          const category = data.category || 'その他';
-          categoryTotals[category] = (categoryTotals[category] || 0) + (data.price || 0);
-        });
+        // 全てのサブスクリプションデータを取得
+        const allSbuscriptions = subscriptionsSnapshot.docs.map((doc) => doc.data());
 
-        const categoryResults: CategoryData[] = Object.entries(categoryTotals)
+        // ① 集計対象の6ヶ月を生成
+        const today = new Date();
+        const targetMonths: string[] = [];
+        for (let i = 0; i < 6; i++) {
+          const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+          const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          targetMonths.push(monthStr);
+        }
+
+        // ② 各月の合計初期化
+        const monthlyTotals: { [month: string]: number } = {};
+        targetMonths.forEach((m) => (monthlyTotals[m] = 0));
+
+        // ③ 各サブスクリプションを処理
+        for (const sub of allSbuscriptions) {
+          const price = sub.price || 0;
+          const startDate = new Date(sub.startDate);
+          const endDate = sub.endDate ? new Date(sub.endDate) : null;
+
+          // 有効期限の月範囲を算出
+          const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+          const end =
+            endDate && !sub.isActive
+              ? new Date(endDate.getFullYear(), endDate.getMonth(), 1)
+              : new Date(today.getFullYear(), today.getMonth(), 1); // isActiveなら今月まで
+
+          // 月ごとのイテレーション
+          for (
+            let d = new Date(start);
+            d <= end;
+            d.setMonth(d.getMonth() + 1)
+          ) {
+            const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            if (monthlyTotals[monthStr] !== undefined) {
+              monthlyTotals[monthStr] += price;
+            }
+          }
+        }
+
+        // ④ グラフ用データに変換（当月が一番左になるように）
+        const monthlyResults: MonthlyData[] = targetMonths.reverse().map((month) => ({
+          month,
+          total: monthlyTotals[month],
+        }));
+
+        // ⑤ 当月のカテゴリ別データを計算
+        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const currentMonthTotals: { [key: string]: number } = {};
+        
+        for (const sub of allSbuscriptions) {
+          const price = sub.price || 0;
+          const startDate = new Date(sub.startDate);
+          const endDate = sub.endDate ? new Date(sub.endDate) : null;
+
+          // 当月に該当するかチェック
+          const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+          const end =
+            endDate && !sub.isActive
+              ? new Date(endDate.getFullYear(), endDate.getMonth(), 1)
+              : new Date(today.getFullYear(), today.getMonth(), 1);
+
+          // 当月が範囲内にあるかチェック
+          const currentMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          if (start <= currentMonthDate && end >= currentMonthDate) {
+            const category = sub.category || 'その他';
+            currentMonthTotals[category] = (currentMonthTotals[category] || 0) + price;
+          }
+        }
+
+        const categoryResults: CategoryData[] = Object.entries(currentMonthTotals)
           .map(([category, total]) => ({
             category,
             total,
           }))
           .sort((a, b) => b.total - a.total); // 金額の大きい順にソート
 
-        // 月別データの計算
-        const today = new Date();
-        const monthlyResults: MonthlyData[] = [];
-        
-        // 過去6ヶ月分のデータを生成
-        for (let i = 0; i < 6; i++) {
-          const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-          const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-          
-          // その月のアクティブなサブスクリプションの合計を計算
-          let total = 0;
-          subscriptionsSnapshot.forEach((doc) => {
-            const data = doc.data();
-            const startDate = new Date(data.startDate);
-            const endDate = data.endDate ? new Date(data.endDate) : null;
-            
-            if (startDate <= date && (!endDate || endDate >= date)) {
-              total += data.price || 0;
-            }
-          });
-          
-          monthlyResults.push({
-            month,
-            total,
-          });
-        }
-
-        setMonthlyData(monthlyResults.reverse()); // 古い順に並び替え
+        setMonthlyData(monthlyResults);
         setCategoryData(categoryResults);
       } catch (error) {
         console.error('Error fetching data:', error);

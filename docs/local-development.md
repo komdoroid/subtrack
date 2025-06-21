@@ -83,7 +83,7 @@ npm run dev
 ### 4. ダミーデータの投入
 
 ```bash
-npx tsx src/scripts/seedDummyData.ts
+npx tsx scripts/seedDummyData.ts
 ```
 
 ## ブラウザからのアクセス
