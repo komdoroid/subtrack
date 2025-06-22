@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { M_PLUS_1 } from 'next/font/google'
 
 interface Subscription {
   id: string
@@ -51,16 +52,37 @@ const formatBillingDateDisplay = (billingDate: string): string => {
   return billingDate
 }
 
-// 指定された月がstartDateとendDateの範囲内にあるかチェックする関数
-const isMonthInRange = (targetMonth: string, startDate: string | null | undefined, endDate: string | null | undefined): boolean => {
-  if (!startDate) return false
-  
-  const target = new Date(targetMonth + '-01')
-  const start = new Date(startDate.slice(0, 7) + '-01')
-  const end = endDate ? new Date(endDate.slice(0, 7) + '-01') : new Date()
-  
-  return target >= start && target <= end
-}
+ const isMonthInRange = (
+   targetMonth: string, // 'YYYY-MM'
+   startDate: string | null | undefined, // 'YYYY-MM-DD'
+   endDate: string | null  | undefined// 'YYYY-MM-DD' | null
+ ): boolean => {
+   if (!startDate) return false
+
+   const [targetYear, targetMonthNum] = targetMonth.split('-').map(Number)
+   const targetStart = new Date(targetYear, targetMonthNum - 1, 1)
+   const targetEnd = new Date(targetYear, targetMonthNum, 0, 23, 59, 59)
+
+   const start = new Date(startDate)
+   const end = endDate
+    ? new Date(new Date(endDate).getFullYear(), new Date(endDate).getMonth() + 1, 0, 23, 59, 59) 
+    : new Date()
+   return targetEnd >= start && targetStart <= end
+ }
+
+ // 現在の月から過去12ケ月を生成（降順）
+ const generatePastMonths = (count: number): string[] => {
+  const months: string[] = []
+  const today = new Date()
+
+  for (let i = 0; i < count; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+    const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    months.push(monthStr)
+  }
+  return months
+ }
+ const selectableMonths = ['現在', ...generatePastMonths(12)]
 
 export default function SubscriptionListPage() {
   const { user, loading: authLoading } = useAuth()
@@ -94,13 +116,11 @@ export default function SubscriptionListPage() {
 
     // 月フィルター
     if (filters.month && filters.month !== 'all') {
-      if (filters.month === '現在') {
-        // "現在"が選択された場合、現在の年月（YYYY-MM）と一致するものをフィルター
-        const currentMonth = new Date().toISOString().slice(0, 7)
-        filtered = filtered.filter(sub => isMonthInRange(currentMonth, sub.startDate, sub.endDate))
-      } else {
-        filtered = filtered.filter(sub => isMonthInRange(filters.month, sub.startDate, sub.endDate))
-      }
+      const targetMonth = filters.month === '現在' ? new Date().toISOString().slice(0, 7) : filters.month
+
+      filtered = filtered.filter(sub => 
+        isMonthInRange(targetMonth, sub.startDate, sub.endDate)
+      )
     }
 
     // 価格範囲フィルター
@@ -213,14 +233,17 @@ export default function SubscriptionListPage() {
                 <Label htmlFor="month" className="text-gray-900">月</Label>
                 <Select
                   value={filters.month}
-                  onValueChange={(value: string) => setFilters(prev => ({ ...prev, month: value }))}
+                  onValueChange={(value: string) => 
+                    setFilters(prev => ({ ...prev, month: value }))}
                 >
                   <SelectTrigger className="bg-white text-gray-400 border-gray-200 hover:bg-gray-50">
                     <SelectValue placeholder="月を選択" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="all" className="text-gray-900 hover:bg-gray-50">すべて</SelectItem>
-                    {uniqueMonths.map(month => (
+                    <SelectItem value="all" className="text-gray-900 hover:bg-gray-50">
+                      すべて
+                    </SelectItem>
+                    {selectableMonths.map(month => (
                       <SelectItem key={month} value={month} className="text-gray-900 hover:bg-gray-50">
                         {month}
                       </SelectItem>
