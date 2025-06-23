@@ -31,8 +31,8 @@ type Subscription = {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: unknown // timestamp
-  updatedAt: unknown // timestamp
+  createdAt: string // timestamp
+  updatedAt: string // timestamp
 }
 
 type MonthlyData = {

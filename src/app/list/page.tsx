@@ -141,7 +141,7 @@ export default function SubscriptionListPage() {
     }
 
     setFilteredSubscriptions(filtered)
-  }, [subscriptions, filters, user, error, filteredSubscriptions])
+  }, [subscriptions, filters, user, error])
 
   // 編集ボタンのハンドラー
   const handleEdit = (subscription: Subscription) => {
