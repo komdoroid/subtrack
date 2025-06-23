@@ -33,8 +33,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: any
-  updatedAt: any
+  createdAt: unknown
+  updatedAt: unknown
 }
 
 interface EditModalProps {
@@ -211,7 +211,7 @@ export const SubscriptionList = () => {
   // 初回読み込みとユーザー変更時の再取得
   useEffect(() => {
     fetchSubscriptions()
-  }, [user])
+  }, [user, fetchSubscriptions])
 
   // デバッグ用のログ出力
   useEffect(() => {

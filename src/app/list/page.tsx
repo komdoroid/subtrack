@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { M_PLUS_1 } from 'next/font/google'
+
 
 interface Subscription {
   id: string
@@ -141,7 +141,7 @@ export default function SubscriptionListPage() {
     }
 
     setFilteredSubscriptions(filtered)
-  }, [subscriptions, filters, user, error])
+  }, [subscriptions, filters, user, error, filteredSubscriptions])
 
   // 編集ボタンのハンドラー
   const handleEdit = (subscription: Subscription) => {
@@ -184,17 +184,6 @@ export default function SubscriptionListPage() {
   }
 
   const uniqueCategories = Array.from(new Set(subscriptions?.map(sub => sub.category) || []))
-  
-  // 月フィルター用の選択肢を生成（nullを"現在"に変換）
-  const uniqueMonths = Array.from(new Set(subscriptions?.map(sub => {
-    const currentMonth = new Date().toISOString().slice(0, 7)
-    return isMonthInRange(currentMonth, sub.startDate, sub.endDate) ? '現在' : sub.month
-  }) || []))
-    .sort((a, b) => {
-      if (a === '現在') return -1
-      if (b === '現在') return 1
-      return b.localeCompare(a) // 月を降順にソート
-    })
 
   return (
     <AppShell>
