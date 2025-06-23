@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/context/AuthContext';
+import { AnnualExpenseEstimation } from './AnnualExpenseEstimation';
 
 type MonthlyData = {
   month: string;
@@ -193,6 +194,9 @@ export const AnalysisPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">支出分析</h1>
 
         <div className="grid grid-cols-1 gap-6">
+          {/* 年間支出見積もり */}
+          <AnnualExpenseEstimation />
+
           <Card className="rounded-2xl shadow-md bg-white">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-700">月別支出推移</CardTitle>
