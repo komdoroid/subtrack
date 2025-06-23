@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
-import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 
@@ -33,8 +33,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: string
-  updatedAt: string
+  createdAt: Timestamp | FieldValue
+  updatedAt: Timestamp | FieldValue
 }
 
 interface EditModalProps {
