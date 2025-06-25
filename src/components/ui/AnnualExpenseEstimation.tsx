@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/context/AuthContext';
@@ -134,80 +134,57 @@ export const AnnualExpenseEstimation: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="rounded-2xl shadow-md bg-white">
-        <CardContent className="p-8 text-center">
-          <div className="text-gray-600">年間支出見積もりを計算中...</div>
-        </CardContent>
-      </Card>
+      <div className="text-center">
+        <div className="text-gray-600">年間支出見積もりを計算中...</div>
+      </div>
     );
   }
 
   if (!estimationData) {
     return (
-      <Card className="rounded-2xl shadow-md bg-white">
-        <CardContent className="p-8 text-center">
-          <div className="text-gray-600">データがありません</div>
-        </CardContent>
-      </Card>
+      <div className="text-center">
+        <div className="text-gray-600">データがありません</div>
+      </div>
     );
   }
 
   return (
-    <Card className="rounded-2xl shadow-md bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-700">年間支出見積もり</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* 合計金額の表示 */}
-        <div 
-          className="text-center cursor-pointer p-6 hover:bg-gray-50 rounded-lg transition-colors"
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-gray-500 text-sm">{new Date().getFullYear()}年度年間支出見積もり</h3>
+        <p className="text-4xl font-bold text-blue-600">¥{estimationData.totalAmount.toLocaleString()}</p>
+        <button 
           onClick={() => setIsExpanded(!isExpanded)}
+          className="text-sm text-blue-500 hover:underline mt-1 inline-flex items-center transition-all duration-200 hover:gap-2"
         >
-          <div className="text-3xl font-bold text-blue-600 mb-2">
-            ¥{estimationData.totalAmount.toLocaleString()}
-          </div>
-          <div className="text-gray-600 text-sm">
-            {new Date().getFullYear()}年度年間支出見積もり
-          </div>
-          <div className="text-gray-400 text-xs mt-2">
-            {isExpanded ? '詳細を隠す' : 'クリックして詳細を表示'}
-          </div>
-        </div>
+          詳細を{isExpanded ? '隠す' : '表示'}
+          {isExpanded ? (
+            <ChevronUp size={16} className="ml-1" />
+          ) : (
+            <ChevronDown size={16} className="ml-1" />
+          )}
+        </button>
+      </div>
 
-        {/* 詳細情報（展開時のみ表示） */}
-        {isExpanded && (
-          <div className="mt-6 border-t pt-6">
-            <h3 className="text-md font-semibold text-gray-700 mb-4">カテゴリ別詳細</h3>
-            
-            {estimationData.categories.map((category) => (
-              <div key={category.category} className="mb-6 last:mb-0">
-                <div className="flex justify-between items-center mb-3 p-3 bg-gray-50 rounded-lg">
-                  <h4 className="font-semibold text-gray-800">{category.category}</h4>
-                  <span className="font-bold text-blue-600">
-                    ¥{category.totalAmount.toLocaleString()}
-                  </span>
-                </div>
-                
-                <div className="ml-4 space-y-2">
-                  {category.services.map((service, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 px-3 bg-white border rounded">
-                      <div>
-                        <span className="text-gray-800">{service.name}</span>
-                        <span className="text-gray-500 text-sm ml-2">
-                          （{service.monthsUsed}ヶ月間利用）
-                        </span>
-                      </div>
-                      <span className="font-medium text-gray-700">
-                        ¥{service.amount.toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+      {/* 詳細情報（展開時のみ表示） */}
+      {isExpanded && (
+        <div className="border-t pt-4 space-y-3">
+          {estimationData.categories.map((category) => (
+            <div key={category.category}>
+              <div className="flex justify-between text-sm font-semibold text-gray-700">
+                <span>{category.category}</span>
+                <span className="text-blue-600">¥{category.totalAmount.toLocaleString()}</span>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              {category.services.map((service, index) => (
+                <div key={index} className="ml-4 flex justify-between text-sm text-gray-600">
+                  <span>{service.name}（{service.monthsUsed}ヶ月間利用）</span>
+                  <span>¥{service.amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }; 

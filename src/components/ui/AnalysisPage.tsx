@@ -15,7 +15,7 @@ import {
   Legend,
   TooltipProps,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/context/AuthContext';
@@ -182,54 +182,52 @@ export const AnalysisPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-gray-50 to-white p-8 space-y-10 min-h-screen flex items-center justify-center">
         <div className="text-gray-600">データを読み込み中...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">支出分析</h1>
+    <div className="bg-gradient-to-br from-gray-50 to-white p-8 space-y-10 min-h-screen">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">支出分析</h2>
 
-        <div className="grid grid-cols-1 gap-6">
-          {/* 年間支出見積もり */}
-          <AnnualExpenseEstimation />
+      {/* 年間支出見積もりカード */}
+      <section className="bg-white rounded-2xl shadow-lg p-6 space-y-4 transition-transform duration-200 hover:scale-[1.01]">
+        <AnnualExpenseEstimation />
+      </section>
 
-          <Card className="rounded-2xl shadow-md bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-700">月別支出推移</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                    <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
-                    <YAxis stroke="#6b7280" fontSize={12} tickFormatter={(value) => `${Number(value) / 1000}k`} />
-                    <Tooltip content={<CustomLineChartTooltip />} />
-                    <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+      {/* 月別支出推移グラフ */}
+      <section className="bg-white rounded-2xl shadow-md p-6 transition duration-200 hover:shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">月別支出推移</h3>
+        <div className="h-60">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
+              <YAxis stroke="#6b7280" fontSize={12} tickFormatter={(value) => `${Number(value) / 1000}k`} />
+              <Tooltip content={<CustomLineChartTooltip />} />
+              <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
 
-          <Card className="rounded-2xl shadow-md bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-700">カテゴリ別割合（今月）</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
+      {/* カテゴリ別円グラフ */}
+      <section className="bg-white rounded-2xl shadow-md p-6 transition duration-200 hover:shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">カテゴリ別割合（今月）</h3>
+        <div className="flex flex-col items-center">
+          {categoryData.length > 0 ? (
+            <>
+              <div className="w-48 h-48 transition-transform duration-300 hover:rotate-1">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={categoryData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={110}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="total"
                       nameKey="category"
@@ -239,14 +237,28 @@ export const AnalysisPage: React.FC = () => {
                       ))}
                     </Pie>
                     <Tooltip content={<CustomPieChartTooltip />} />
-                    <Legend formatter={(value) => <span className="text-gray-600">{value}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
+              <div className="mt-4 text-center space-y-1">
+                {categoryData.map((entry, index) => (
+                  <p key={entry.category} className="text-sm text-gray-600 flex items-center justify-center gap-2">
+                    <span 
+                      className="inline-block w-3 h-3 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    ></span>
+                    {entry.category}: ¥{entry.total.toLocaleString()}
+                  </p>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="w-48 h-48 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
+              データがありません
+            </div>
+          )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
