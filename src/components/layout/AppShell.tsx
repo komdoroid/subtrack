@@ -19,6 +19,7 @@
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { Navbar } from '@/components/Navbar'
 import {
   Home,
@@ -26,7 +27,6 @@ import {
   BarChart3,
   LogOut,
 } from 'lucide-react' // lucide-react を導入済み想定
-import { useRouter } from 'next/navigation'
 import { auth } from '@/firebase'
 import { AuthProvider } from '@/context/AuthContext'
 
@@ -43,6 +43,7 @@ const navItems = [
 
 export const AppShell = ({ children }: Props) => {
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleLogout = async () => {
     await auth.signOut()
@@ -51,44 +52,40 @@ export const AppShell = ({ children }: Props) => {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-darkBg">
-      {/* 上部バー */}
-      <Navbar />
-
-      {/* 本体: Sidebar + Main */}
-      <div className="flex flex-1">
+      <div className="flex min-h-screen font-sans">
         {/* ---- Sidebar ---- */}
-        <aside
-          className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-900
-                     border-r border-border dark:border-slate-700
-                     p-4 space-y-4"
-        >
-          {navItems.map(({ href, icon: Icon, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg
-                         text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-800
-                         transition-colors"
-            >
-              <Icon size={20} />
-              <span className="font-medium">{label}</span>
-            </Link>
-          ))}
-
+        <aside className="w-64 bg-slate-900 text-white p-6 space-y-6 shadow-lg">
+          <h1 className="text-2xl font-bold tracking-tight">SubTrack</h1>
+          <nav className="space-y-2 text-sm">
+            {navItems.map(({ href, icon: Icon, label }) => {
+              const isActive = pathname === href
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive 
+                      ? 'bg-slate-800 text-white' 
+                      : 'hover:bg-slate-800'
+                  }`}
+                >
+                  <Icon size={18} className="text-white" />
+                  <span className="font-medium">{label}</span>
+                </Link>
+              )
+            })}
+          </nav>
           <button
             onClick={handleLogout}
-            className="mt-auto flex items-center gap-3 px-3 py-2 rounded-lg
-                       text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-3 text-red-400 text-sm mt-10 hover:text-red-300 transition-colors"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span className="font-medium">ログアウト</span>
           </button>
         </aside>
 
         {/* ---- Main content ---- */}
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
-        </div>
+        <main className="flex-1">{children}</main>
       </div>
     </AuthProvider>
   )

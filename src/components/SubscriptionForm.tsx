@@ -114,10 +114,10 @@ export const SubscriptionForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow p-6 rounded w-full max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">
+    <section className="bg-white p-6 rounded-2xl shadow-md space-y-6">
+      <h3 className="font-semibold text-lg text-gray-800">
         新しいサブスクリプションを登録
-      </h2>
+      </h3>
 
       {/* 成功メッセージ */}
       {success && (
@@ -126,111 +126,111 @@ export const SubscriptionForm = () => {
         </div>
       )}
 
-      {/* サービス名 */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-800">サービス名 *</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="例: Netflix"
-          className={`w-full border rounded p-2 ${
-            errors.name ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
-      </div>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* サービス名 */}
+          <div>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="サービス名 (例: Netflix)"
+              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                errors.name ? 'border-red-500' : ''
+              }`}
+            />
+            {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+          </div>
 
-      {/* 月額料金 */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-800">月額料金（円） *</label>
-        <input
-          type="number"
-          min={0}
-          value={price}
-          onChange={(e) => setPrice(Number(e.target.value))}
-          placeholder="例: 1490"
-          className={`w-full border rounded p-2 ${
-            errors.price ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
-      </div>
+          {/* 月額料金 */}
+          <div>
+            <input
+              type="number"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(Number(e.target.value))}
+              placeholder="月額 (例: 1490)"
+              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                errors.price ? 'border-red-500' : ''
+              }`}
+            />
+            {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
+          </div>
 
-      {/* カテゴリ */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-800">カテゴリ *</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className={`w-full border rounded p-2 ${
-            errors.category ? 'border-red-500' : 'border-gray-300'
-          }`}
+          {/* カテゴリ */}
+          <div>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                errors.category ? 'border-red-500' : ''
+              }`}
+            >
+              <option value="">カテゴリを選択</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
+          </div>
+
+          {/* 請求日 */}
+          <div>
+            <select
+              value={billingDay}
+              onChange={(e) => setBillingDay(Number(e.target.value))}
+              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                errors.billingDay ? 'border-red-500' : ''
+              }`}
+            >
+              {billingDays.map((day) => (
+                <option key={day} value={day}>
+                  支払日: {day}日
+                </option>
+              ))}
+            </select>
+            {errors.billingDay && <p className="text-sm text-red-600 mt-1">{errors.billingDay}</p>}
+          </div>
+        </div>
+
+        {/* 利用開始日 */}
+        <div className="mb-4">
+          <label className="block mb-1 font-medium text-gray-800">利用開始日 *</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className={`w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.startDate ? 'border-red-500' : ''
+            }`}
+          />
+          {errors.startDate && (
+            <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>
+          )}
+        </div>
+
+        {/* 説明 */}
+        <div className="mb-6">
+          <label className="block mb-1 font-medium text-gray-800">説明（任意）</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="メモや備考があれば入力してください"
+            rows={3}
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
         >
-          <option value="">カテゴリを選択してください</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-        {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
-      </div>
-
-      {/* 請求日 */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-800">請求日 *</label>
-        <select
-          value={billingDay}
-          onChange={(e) => setBillingDay(Number(e.target.value))}
-          className={`w-full border rounded p-2 ${
-            errors.billingDay ? 'border-red-500' : 'border-gray-300'
-          }`}
-        >
-          {billingDays.map((day) => (
-            <option key={day} value={day}>
-              {day}日
-            </option>
-          ))}
-        </select>
-        {errors.billingDay && <p className="text-sm text-red-600 mt-1">{errors.billingDay}</p>}
-      </div>
-
-      {/* 利用開始日 */}
-      <div className="mb-4">
-        <label className="block mb-1 font-medium text-gray-800">利用開始日 *</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className={`w-full border rounded p-2 ${
-            errors.startDate ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.startDate && (
-          <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>
-        )}
-      </div>
-
-      {/* 説明 */}
-      <div className="mb-6">
-        <label className="block mb-1 font-medium text-gray-800">説明（任意）</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="メモや備考があれば入力してください"
-          rows={3}
-          className="w-full border border-gray-300 rounded p-2"
-        />
-      </div>
-
-      <PrimaryButton
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? '登録中...' : '登録する'}
-      </PrimaryButton>
-    </form>
+          {loading ? '登録中...' : '登録'}
+        </button>
+      </form>
+    </section>
   )
 }

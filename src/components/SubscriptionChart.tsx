@@ -136,17 +136,9 @@ export const SubscriptionChart = () => {
   if (!monthlyData.length) return <p>データがありません。</p>
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">月別支出推移（直近6ヶ月）</h2>
-        <div className="text-right">
-          <p className="text-sm text-gray-600">今月の予定支出</p>
-          <p className="text-2xl font-bold text-blue-600">
-            ¥{monthlyData[monthlyData.length - 1]?.planned?.toLocaleString() || '0'}
-          </p>
-        </div>
-      </div>
-      <ResponsiveContainer width="100%" height={300}>
+    <section className="bg-white p-6 rounded-2xl shadow-md">
+      <h3 className="font-semibold text-lg mb-3">月別支出推移（直近6ヶ月）</h3>
+      <ResponsiveContainer width="100%" height={240}>
         <BarChart data={monthlyData}>
           <XAxis 
             dataKey="month" 
@@ -173,6 +165,6 @@ export const SubscriptionChart = () => {
           />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </section>
   )
 }
