@@ -20,7 +20,7 @@ type FormErrors = {
   name?: string
   price?: string
   category?: string
-  billingDay?: string
+  billingDate?: string
   startDate?: string
 }
 
@@ -28,7 +28,7 @@ export const SubscriptionForm = () => {
   const [name, setName] = useState('')
   const [price, setPrice] = useState<number>(0)
   const [category, setCategory] = useState('')
-  const [billingDay, setBillingDay] = useState<number>(1)
+  const [billingDate, setBillingDate] = useState('')
   const [startDate, setStartDate] = useState('')
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -47,19 +47,23 @@ export const SubscriptionForm = () => {
     'その他'
   ]
 
-  // 請求日の選択肢（1〜31日）
-  const billingDays = Array.from({ length: 31 }, (_, i) => i + 1)
-
   /** 入力チェック ― 問題がなければ true */
   const validate = (): boolean => {
     const next: FormErrors = {}
     if (!name.trim()) next.name = 'サービス名を入力してください'
     if (isNaN(price) || price < 0) next.price = '月額料金は 0 以上の数値で入力してください'
     if (!category) next.category = 'カテゴリを選択してください'
-    if (billingDay < 1 || billingDay > 31) next.billingDay = '請求日は 1〜31 の間で選択してください'
+    if (!billingDate) next.billingDate = '次回請求日を選択してください'
     if (!startDate) next.startDate = '利用開始日を選択してください'
     setErrors(next)
     return Object.keys(next).length === 0
+  }
+
+  // 日付から請求日（日）を抽出
+  const getBillingDayFromDate = (dateString: string): number => {
+    if (!dateString) return 1
+    const date = new Date(dateString)
+    return date.getDate()
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -79,7 +83,7 @@ export const SubscriptionForm = () => {
         name: name.trim(),
         price: Number(price),
         category: category,
-        billingDay: Number(billingDay),
+        billingDay: getBillingDayFromDate(billingDate),
         isActive: true,
         month: null, // 現在契約中のためnull
         createdFrom: null,
@@ -97,7 +101,7 @@ export const SubscriptionForm = () => {
       setName('')
       setPrice(0)
       setCategory('')
-      setBillingDay(1)
+      setBillingDate('')
       setStartDate('')
       setDescription('')
       setErrors({})
@@ -114,8 +118,8 @@ export const SubscriptionForm = () => {
   }
 
   return (
-    <section className="bg-white p-6 rounded-2xl shadow-md space-y-6">
-      <h3 className="font-semibold text-lg text-gray-800">
+    <section className="bg-white rounded-2xl shadow-md p-6 transition duration-200 hover:shadow-lg">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
         新しいサブスクリプションを登録
       </h3>
 
@@ -126,107 +130,114 @@ export const SubscriptionForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* サービス名 */}
-          <div>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="サービス名 (例: Netflix)"
-              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
-                errors.name ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
-          </div>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* サービス名 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            サービス名 *
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="例: Netflix"
+            className={`border rounded p-2 w-full ${
+              errors.name ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+        </div>
 
-          {/* 月額料金 */}
-          <div>
-            <input
-              type="number"
-              min={0}
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-              placeholder="月額 (例: 1490)"
-              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
-                errors.price ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
-          </div>
+        {/* 月額料金 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            月額料金 *
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
+            placeholder="0"
+            className={`border rounded p-2 w-full ${
+              errors.price ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
+        </div>
 
-          {/* カテゴリ */}
-          <div>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
-                errors.category ? 'border-red-500' : ''
-              }`}
-            >
-              <option value="">カテゴリを選択</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-            {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
-          </div>
+        {/* カテゴリ */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            カテゴリ *
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={`border rounded p-2 w-full ${
+              errors.category ? 'border-red-500' : 'border-gray-300'
+            }`}
+          >
+            <option value="">カテゴリを選択</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+          {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
+        </div>
 
-          {/* 請求日 */}
-          <div>
-            <select
-              value={billingDay}
-              onChange={(e) => setBillingDay(Number(e.target.value))}
-              className={`border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
-                errors.billingDay ? 'border-red-500' : ''
-              }`}
-            >
-              {billingDays.map((day) => (
-                <option key={day} value={day}>
-                  支払日: {day}日
-                </option>
-              ))}
-            </select>
-            {errors.billingDay && <p className="text-sm text-red-600 mt-1">{errors.billingDay}</p>}
-          </div>
+        {/* 次回請求日 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            次回請求日 *
+          </label>
+          <input
+            type="date"
+            value={billingDate}
+            onChange={(e) => setBillingDate(e.target.value)}
+            className={`border rounded p-2 w-full ${
+              errors.billingDate ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.billingDate && <p className="text-sm text-red-600 mt-1">{errors.billingDate}</p>}
         </div>
 
         {/* 利用開始日 */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium text-gray-800">利用開始日 *</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            利用開始日 *
+          </label>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className={`w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.startDate ? 'border-red-500' : ''
+            className={`border rounded p-2 w-full ${
+              errors.startDate ? 'border-red-500' : 'border-gray-300'
             }`}
           />
-          {errors.startDate && (
-            <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>
-          )}
+          {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
         </div>
 
         {/* 説明 */}
-        <div className="mb-6">
-          <label className="block mb-1 font-medium text-gray-800">説明（任意）</label>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            メモ・備考（任意）
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="メモや備考があれば入力してください"
-            rows={3}
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={4}
+            className="border rounded p-2 w-full border-gray-300"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-fit disabled:opacity-50"
         >
           {loading ? '登録中...' : '登録'}
         </button>

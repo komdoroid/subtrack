@@ -10,7 +10,6 @@
 
 import { useAuth } from '@/lib/useAuth'
 import { AppShell } from '@/components/layout/AppShell'
-import { SubscriptionList } from '@/components/SubscriptionList'
 import { SubscriptionForm } from '@/components/SubscriptionForm'
 import { SubscriptionChart } from '@/components/SubscriptionChart'
 import { DashboardSummary } from '@/components/DashboardSummary'
@@ -28,18 +27,16 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="bg-gradient-to-br from-gray-50 to-white p-10 space-y-10 min-h-screen">
-        <h2 className="text-3xl font-semibold text-gray-800 tracking-tight">
-          ようこそ、{user?.email} さん！
-        </h2>
+      <div className="bg-gradient-to-br from-gray-50 to-white p-8 space-y-8 min-h-screen">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">ダッシュボード</h2>
 
-        {/* 月別支出グラフ */}
-        <SubscriptionChart />
-
-        {/* 合計金額とサブスク一覧 */}
+        {/* 今月の合計と展開トグル */}
         <DashboardSummary />
 
-        {/* 新規登録フォーム */}
+        {/* 月別支出推移グラフ */}
+        <SubscriptionChart />
+
+        {/* サブスクリプション登録フォーム */}
         <SubscriptionForm />
       </div>
     </AppShell>

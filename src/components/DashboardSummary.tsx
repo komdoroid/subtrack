@@ -3,7 +3,7 @@
  * ----------------------------------------
  * 作成日: 2025-06-24
  * 概要  : ダッシュボード用のサマリーコンポーネント
- *         - 今月の合計金額表示
+ *         - 今月の合計金額表示（展開可能）
  *         - サブスクリプション一覧（グリッド表示）
  */
 
@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 
 // 統一されたsubscriptionsコレクションの型定義
 interface Subscription {
@@ -164,6 +164,7 @@ export const DashboardSummary = () => {
   const [loading, setLoading] = useState(true)
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
 
   // 現在契約中のサブスクリプションを取得
   const fetchSubscriptions = async () => {
@@ -232,7 +233,7 @@ export const DashboardSummary = () => {
 
   if (loading) {
     return (
-      <section>
+      <section className="bg-white rounded-xl shadow p-6">
         <div className="text-gray-600">データを読み込み中...</div>
       </section>
     )
@@ -241,44 +242,63 @@ export const DashboardSummary = () => {
   const totalAmount = subscriptions.reduce((sum, sub) => sum + sub.price, 0)
 
   return (
-    <section>
-      <h3 className="text-lg font-semibold mb-4">
-        今月の合計: <span className="text-blue-600">¥{totalAmount.toLocaleString()} / 月</span>
-      </h3>
+    <section 
+      className="bg-white rounded-xl shadow p-6 cursor-pointer transition hover:shadow-md" 
+      onClick={() => setShowDetails(!showDetails)}
+    >
+      <div className="flex flex-col items-center text-center">
+        <h3 className="text-lg font-semibold text-gray-700">今月の合計</h3>
+        <div className="flex items-center gap-2 text-blue-600 font-bold text-3xl mt-2">
+          ¥{totalAmount.toLocaleString()}
+          {showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </div>
+      </div>
       
-      {subscriptions.length === 0 ? (
-        <div className="text-gray-600">サブスクリプションが登録されていません。</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {subscriptions.map((subscription) => (
-            <div
-              key={subscription.id}
-              className="p-5 border rounded-xl bg-white shadow-sm transition hover:shadow-md"
-            >
-              <div className="font-semibold text-gray-800">
-                {subscription.name} - ¥{subscription.price.toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                支払日: {subscription.billingDay}日 ・ カテゴリ: {subscription.category}
-              </div>
-              <div className="mt-3 flex space-x-4 text-sm">
-                <button
-                  onClick={() => handleEdit(subscription)}
-                  className="text-blue-500 hover:text-blue-700"
-                  aria-label="編集"
+      {showDetails && (
+        <div className="mt-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+          {subscriptions.length === 0 ? (
+            <div className="text-gray-600 text-center">サブスクリプションが登録されていません。</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subscriptions.map((subscription) => (
+                <div
+                  key={subscription.id}
+                  className="p-4 border rounded bg-white shadow-sm transition hover:shadow-md"
                 >
-                  <Pencil size={18} />
-                </button>
-                <button
-                  onClick={() => handleDelete(subscription.id)}
-                  className="text-red-500 hover:text-red-700"
-                  aria-label="削除"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-semibold text-gray-800">
+                        {subscription.name} - ¥{subscription.price.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        支払日: {subscription.billingDay}日 ・ カテゴリ: {subscription.category}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(subscription)
+                        }}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(subscription.id)
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
