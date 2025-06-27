@@ -34,7 +34,14 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-gray-800 font-inter scroll-smooth">
       {/* ヘッダー / ナビゲーション */}
       <header className="flex justify-between items-center px-6 py-4 shadow-sm sticky top-0 bg-white z-50">
-        <a href="#hero" className="text-xl font-bold text-indigo-900">SubTrack</a>
+        <a href="#hero" className="flex items-center space-x-2">
+          <img 
+            src="/icons/icon-512.png" 
+            alt="SubTrack" 
+            className="w-8 h-8"
+          />
+          <span className="text-xl font-bold text-indigo-900">SubTrack</span>
+        </a>
         <nav className="hidden md:flex space-x-4 text-sm">
           <a href="#features" className={`transition-colors ${activeSection === 'features' ? 'text-indigo-700 font-semibold underline' : 'hover:text-indigo-700'}`}>機能</a>
           <a href="#how" className={`transition-colors ${activeSection === 'how' ? 'text-indigo-700 font-semibold underline' : 'hover:text-indigo-700'}`}>使い方</a>
