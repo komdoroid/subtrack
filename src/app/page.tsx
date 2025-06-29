@@ -35,6 +35,7 @@ export default function LandingPage() {
       {/* ヘッダー / ナビゲーション */}
       <header className="flex justify-between items-center px-6 py-4 shadow-sm sticky top-0 bg-white z-50">
         <a href="#hero" className="flex items-center space-x-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/icons/icon-512.png" 
             alt="SubTrack" 

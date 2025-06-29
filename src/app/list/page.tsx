@@ -9,9 +9,8 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/useAuth'
-import { useSubscriptionData } from '@/lib/hooks/useSubscriptionData'
 import { Pencil, Trash2, Filter, X, Loader2 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { collection, doc, deleteDoc, updateDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore'
@@ -31,8 +30,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: any
-  updatedAt: any
+  createdAt: unknown
+  updatedAt: unknown
 }
 
 interface EditModalProps {
@@ -173,7 +172,6 @@ const generatePastMonths = (count: number): string[] => {
 
   for (let i = 0; i < count; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
-    const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
     const displayStr = `${date.getFullYear()}年${date.getMonth() + 1}月`
     months.push(displayStr)
   }
@@ -198,7 +196,7 @@ export default function SubscriptionListPage() {
   })
 
   // サブスクリプションデータを取得
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = useCallback(async () => {
     if (!user) {
       setLoading(false)
       return
@@ -225,11 +223,11 @@ export default function SubscriptionListPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     fetchSubscriptions()
-  }, [user])
+  }, [user, fetchSubscriptions])
 
   // フィルタリング処理
   useEffect(() => {

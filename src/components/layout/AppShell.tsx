@@ -20,7 +20,6 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Navbar } from '@/components/Navbar'
 import {
   Home,
   ListOrdered,

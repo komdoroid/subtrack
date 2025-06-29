@@ -12,10 +12,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   TooltipProps,
 } from 'recharts';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAuth } from '@/context/AuthContext';

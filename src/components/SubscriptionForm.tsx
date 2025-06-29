@@ -14,7 +14,6 @@ import { useState } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAuth } from '@/lib/useAuth'
-import { PrimaryButton } from './ui/PrimaryButton'
 
 type FormErrors = {
   name?: string

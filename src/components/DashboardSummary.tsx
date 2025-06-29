@@ -9,7 +9,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/firebase'
@@ -29,8 +29,8 @@ interface Subscription {
   startDate: string
   endDate: string | null
   description: string | null
-  createdAt: any
-  updatedAt: any
+  createdAt: unknown
+  updatedAt: unknown
 }
 
 interface EditModalProps {
@@ -167,7 +167,7 @@ export const DashboardSummary = () => {
   const [showDetails, setShowDetails] = useState(false)
 
   // 現在契約中のサブスクリプションを取得
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = useCallback(async () => {
     if (!user) {
       setLoading(false)
       return
@@ -194,11 +194,11 @@ export const DashboardSummary = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     fetchSubscriptions()
-  }, [user])
+  }, [user, fetchSubscriptions])
 
   // 削除機能
   const handleDelete = async (subscriptionId: string) => {

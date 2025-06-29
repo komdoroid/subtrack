@@ -15,7 +15,7 @@ import { SubscriptionChart } from '@/components/SubscriptionChart'
 import { DashboardSummary } from '@/components/DashboardSummary'
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth(true)
+  const { loading } = useAuth(true)
 
   if (loading) {
     return (

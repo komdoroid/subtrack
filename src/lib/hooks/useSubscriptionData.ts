@@ -145,8 +145,6 @@ export const useSubscriptionData = (userId: string | undefined) => {
   useEffect(() => {
     if (userId) {
       fetchData()
-      console.log('[fetchData] Fetched subscriptions:', data)
-      console.log('[fetchData] Final merged data:', data)
     }
   }, [fetchData, userId])
 
