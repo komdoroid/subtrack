@@ -1,4 +1,3 @@
-rules_version = '2';
 // This rule allows anyone with your Firestore database reference to view, edit,
 // and delete all data in your Firestore database. It is useful for getting
 // started, but it is configured to expire after 30 days because it
@@ -8,44 +7,37 @@ rules_version = '2';
 // Make sure to write security rules for your app before that time, or else
 // all client requests to your Firestore database will be denied until you Update
 // your rules
-
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // ===========================================
-    // 開発用セキュリティルール (SubTrack)
-    // 更新日: 2025-01-XX
-    // 対応: 統合されたsubscriptionsコレクション
-    // ===========================================
-    
-    // 統合されたsubscriptionsコレクション用ルール
+
+    // 認証ユーザー本人のサブスクリプションのみアクセス可能
     match /subscriptions/{subscriptionId} {
-      // 認証済みユーザーのみ、自分のデータにアクセス可能
-      allow read, write: if request.auth != null 
-        && request.auth.uid == resource.data.userId;
-      
-      // 新規作成時：認証済みかつ自分のユーザーIDでのみ作成可能
-      allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.userId
-        && request.resource.data.keys().hasAll(['name', 'price', 'category', 'userId'])
-        && request.resource.data.price is number;
+      allow read, update, delete: if isOwner();
+      allow create: if isCreatingOwnSubscription();
     }
-    
-    // usersコレクション用ルール
+
+    // 自分のユーザープロフィールにのみアクセス可
     match /users/{userId} {
-      // 認証済みユーザーは自分のプロフィールのみアクセス可能
-      allow read, write: if request.auth != null 
-        && request.auth.uid == userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // 開発用：テストデータや一時データ用
-    match /dev_test/{document=**} {
-      allow read, write: if request.auth != null;
+
+    // 上記以外は拒否（開発用パスは含めない）
+    match /{document=**} {
+      allow read, write: if false;
     }
-    
-    // 開発用：ログやデバッグ情報用  
-    match /debug_logs/{document=**} {
-      allow read, write: if request.auth != null;
+
+    // 共通関数定義
+    function isOwner() {
+      return request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    function isCreatingOwnSubscription() {
+      return request.auth != null &&
+             request.auth.uid == request.resource.data.userId &&
+             request.resource.data.keys().hasAll(['name', 'price', 'category', 'userId']) &&
+             request.resource.data.price is number;
     }
   }
 }
