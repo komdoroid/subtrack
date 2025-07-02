@@ -38,7 +38,6 @@ type Subscription = {
 type MonthlyData = {
   month: string // 'YYYY-MM'
   actual: number // 実績値
-  planned?: number // 予定支出（今月のみ）
 }
 
 // 📅 過去6か月分の年月配列を生成
@@ -101,29 +100,42 @@ export const SubscriptionChart = () => {
         ...doc.data()
       })) as Subscription[]
 
-      // 実績支出の計算（monthが存在する履歴データ）
-      const historicalData = subscriptions.filter(sub => sub.month !== null)
-      const actualTotals: Record<string, number> = {}
-
-      for (const subscription of historicalData) {
-        const month = subscription.month!
-        actualTotals[month] = (actualTotals[month] || 0) + subscription.price
-      }
-
-      // 今月の予定支出の計算（isActive: true かつ monthがnullまたは存在しない）
-      const currentSubscriptions = subscriptions.filter(sub => 
-        sub.isActive && (sub.month === null || sub.month === undefined)
-      )
-      const currentMonthTotal = currentSubscriptions.reduce((sum, sub) => sum + sub.price, 0)
-
       // 過去6ヶ月分と今月のデータを生成
       const months = generateLast6Months()
-      const currentMonth = new Date().toISOString().slice(0, 7)
+      const today = new Date()
+      
+      // 各月の合計初期化
+      const monthlyTotals: Record<string, number> = {}
+      months.forEach((month) => (monthlyTotals[month] = 0))
+
+      // 各サブスクリプションを処理
+      for (const sub of subscriptions) {
+        const price = sub.price || 0
+        const startDate = new Date(sub.startDate)
+        const endDate = sub.endDate ? new Date(sub.endDate) : null
+
+        // 有効期限の月範囲を算出
+        const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+        const end = endDate && !sub.isActive
+          ? new Date(endDate.getFullYear(), endDate.getMonth(), 1)
+          : new Date(today.getFullYear(), today.getMonth(), 1) // isActiveなら今月まで
+
+        // 月ごとのイテレーション
+        for (
+          let d = new Date(start);
+          d <= end;
+          d.setMonth(d.getMonth() + 1)
+        ) {
+          const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+          if (monthlyTotals[monthStr] !== undefined) {
+            monthlyTotals[monthStr] += price
+          }
+        }
+      }
 
       const fullData: MonthlyData[] = months.map((month) => ({
         month: formatMonthLabel(month),
-        actual: actualTotals[month] || 0,
-        ...(month === currentMonth ? { planned: currentMonthTotal } : {})
+        actual: monthlyTotals[month] || 0,
       }))
 
       setMonthlyData(fullData)
@@ -150,18 +162,11 @@ export const SubscriptionChart = () => {
           />
           <YAxis />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
           <Bar 
             dataKey="actual" 
             fill="#3B82F6" 
             barSize={30}
             name="実績"
-          />
-          <Bar 
-            dataKey="planned" 
-            fill="#10B981" 
-            barSize={30}
-            name="予定"
           />
         </BarChart>
       </ResponsiveContainer>
