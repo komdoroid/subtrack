@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { auth } from '@/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { NavigationLink } from '@/components/ui/NavigationLink'
+import { useNavigate } from '@/hooks/useNavigate'
 
 export default function AuthPage() {
-  const router = useRouter()
+  const { navigate } = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLogin, setIsLogin] = useState(true)
@@ -27,7 +27,7 @@ export default function AuthPage() {
       }
 
       // ログイン後にダッシュボードへリダイレクト
-      router.push('/dashboard')
+      navigate('/dashboard')
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message)
@@ -41,7 +41,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー / ロゴとアプリ名 */}
       <header className="px-6 py-4 bg-white shadow-sm">
-        <Link href="/" className="flex items-center space-x-2 w-fit">
+        <NavigationLink href="/" className="flex items-center space-x-2 w-fit">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/icons/icon-512.png" 
@@ -49,7 +49,7 @@ export default function AuthPage() {
             className="w-8 h-8"
           />
           <span className="text-xl font-bold text-indigo-900">SubTrack</span>
-        </Link>
+        </NavigationLink>
       </header>
 
       {/* メインコンテンツ */}

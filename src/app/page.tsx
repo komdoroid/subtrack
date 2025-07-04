@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from "next/link"
 import { useAuth } from '@/context/AuthContext'
+import { NavigationLink } from '@/components/ui/NavigationLink'
 
 const sections = ['hero', 'features', 'additional', 'how', 'faq', 'cta']
 
@@ -48,11 +48,11 @@ export default function LandingPage() {
           <a href="#how" className={`transition-all duration-300 ${activeSection === 'how' ? 'text-indigo-700 font-semibold' : 'hover:text-indigo-700 hover:scale-105'}`}>使い方</a>
           <a href="#faq" className={`transition-all duration-300 ${activeSection === 'faq' ? 'text-indigo-700 font-semibold' : 'hover:text-indigo-700 hover:scale-105'}`}>FAQ</a>
           <a href="#cta" className={`transition-all duration-300 ${activeSection === 'cta' ? 'text-indigo-700 font-semibold' : 'hover:text-indigo-700 hover:scale-105'}`}>始める</a>
-          <Link href="/auth" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg">ログイン</Link>
+          <NavigationLink href="/auth" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg">ログイン</NavigationLink>
         </nav>
         {/* モバイル用ログインボタン */}
         <div className="md:hidden">
-          <Link href="/auth" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg">ログイン</Link>
+          <NavigationLink href="/auth" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg">ログイン</NavigationLink>
         </div>
       </header>
 
@@ -72,23 +72,23 @@ export default function LandingPage() {
               読み込み中...
             </div>
           ) : user ? (
-            <Link href="/dashboard">
+            <NavigationLink href="/dashboard">
               <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-xl">
                 ダッシュボードに戻る
               </button>
-            </Link>
+            </NavigationLink>
           ) : (
             <div className="flex justify-center gap-4 flex-wrap">
-              <Link href="/auth">
+              <NavigationLink href="/auth">
                 <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-xl">
                   無料で始める
                 </button>
-              </Link>
-              <Link href="/auth">
+              </NavigationLink>
+              <NavigationLink href="/auth">
                 <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-4 rounded-full text-lg hover:bg-indigo-600 hover:text-white transition-all duration-300 hover:scale-105 shadow-lg">
                   ログイン
                 </button>
-              </Link>
+              </NavigationLink>
             </div>
           )}
           
@@ -232,17 +232,17 @@ export default function LandingPage() {
               読み込み中...
             </div>
           ) : user ? (
-            <Link href="/dashboard">
+            <NavigationLink href="/dashboard">
               <button className="bg-white text-indigo-600 px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-xl font-semibold">
                 ダッシュボードに戻る
               </button>
-            </Link>
+            </NavigationLink>
           ) : (
-            <Link href="/auth">
+            <NavigationLink href="/auth">
               <button className="bg-white text-indigo-600 px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-xl font-semibold">
                 無料で始める
               </button>
-            </Link>
+            </NavigationLink>
           )}
         </div>
       </section>

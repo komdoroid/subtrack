@@ -18,8 +18,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   Home,
   ListOrdered,
@@ -28,6 +27,8 @@ import {
 } from 'lucide-react' // lucide-react を導入済み想定
 import { auth } from '@/firebase'
 import { AuthProvider } from '@/context/AuthContext'
+import { NavigationLink } from '@/components/ui/NavigationLink'
+import { useNavigate } from '@/hooks/useNavigate'
 
 type Props = {
   children: ReactNode
@@ -41,12 +42,12 @@ const navItems = [
 ]
 
 export const AppShell = ({ children }: Props) => {
-  const router = useRouter()
+  const { navigate } = useNavigate()
   const pathname = usePathname()
 
   const handleLogout = async () => {
     await auth.signOut()
-    router.push('/auth')
+    navigate('/auth')
   }
 
   return (
@@ -59,7 +60,7 @@ export const AppShell = ({ children }: Props) => {
             {navItems.map(({ href, icon: Icon, label }) => {
               const isActive = pathname === href
               return (
-                <Link
+                <NavigationLink
                   key={href}
                   href={href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
@@ -70,7 +71,7 @@ export const AppShell = ({ children }: Props) => {
                 >
                   <Icon size={18} className="text-white" />
                   <span className="font-medium">{label}</span>
-                </Link>
+                </NavigationLink>
               )
             })}
           </nav>
